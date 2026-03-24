@@ -1,93 +1,96 @@
 """
-FastAPI backend — BioSync Tele-Rescue
-Healthcare PS 1 · Doctor Availability & Teleconsultation Platform
-
-Endpoints
----------
-POST  /vitals              — Ingest patient vitals, run anomaly detection
-GET   /ws                  — WebSocket: live vitals feed for doctor dashboard
-GET   /doctors             — List available doctors
-POST  /appointments        — Book a teleconsultation appointment
-GET   /appointments/{id}   — Get appointment by ID
-GET   /notifications/{uid} — Get notifications for a user
-POST  /feedback            — Submit patient feedback
-GET   /health              — Health check
+FastAPI backend for the BioSync Tele-Rescue telemedicine platform.
 """
+from __future__ import annotations
 
-import uuid
+import asyncio
+from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timezone
-from typing import List
-from contextlib import asynccontextmanager
+from typing import List, Optional
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.models import (
-    VitalsPayload, AnomalyEvent,
-    Doctor, AppointmentRequest, Appointment,
-    Notification, FeedbackRequest, Feedback,
-)
-from backend.ml.anomaly import detect
 from backend.llm import get_triage_brief
+from backend.ml.anomaly import detect
+from backend.models import (
+    AnomalyEvent,
+    AuthResponse,
+    Appointment,
+    AppointmentRequest,
+    AppointmentUpdateRequest,
+    Doctor,
+    DoctorStatusUpdateRequest,
+    Feedback,
+    FeedbackRequest,
+    FeedbackSummary,
+    LoginRequest,
+    Notification,
+    PatientProfile,
+    RegisterRequest,
+    VitalsPayload,
+)
+from backend.store import store
 
-
-# ─── In-memory stores (replace with a real DB for production) ─────────────────
-
-DOCTORS: List[Doctor] = [
-    Doctor(id="d1", name="Dr. Priya Sharma",   specialty="Cardiologist",       status="available", rating=4.9),
-    Doctor(id="d2", name="Dr. Rajan Mehta",    specialty="General Physician",  status="available", rating=4.7),
-    Doctor(id="d3", name="Dr. Ananya Bose",    specialty="Emergency Medicine", status="available", rating=4.8),
-    Doctor(id="d4", name="Dr. Vikram Singh",   specialty="Pulmonologist",      status="busy",      rating=4.6),
-    Doctor(id="d5", name="Dr. Sunita Reddy",   specialty="Neurologist",        status="offline",   rating=4.5),
-]
-
-appointments: dict[str, Appointment] = {}
-notifications: dict[str, List[Notification]] = {}   # uid -> list
-feedbacks: dict[str, Feedback] = {}
-
-
-# ─── WebSocket connection manager ─────────────────────────────────────────────
 
 class ConnectionManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.active: List[WebSocket] = []
 
-    async def connect(self, ws: WebSocket):
-        await ws.accept()
-        self.active.append(ws)
+    async def connect(self, websocket: WebSocket) -> None:
+        await websocket.accept()
+        self.active.append(websocket)
 
-    def disconnect(self, ws: WebSocket):
-        self.active.remove(ws)
+    def disconnect(self, websocket: WebSocket) -> None:
+        if websocket in self.active:
+            self.active.remove(websocket)
 
-    async def broadcast(self, data: dict):
-        dead = []
-        for ws in self.active:
+    async def broadcast(self, payload: dict) -> None:
+        disconnected: list[WebSocket] = []
+        for websocket in self.active:
             try:
-                await ws.send_json(data)
+                await websocket.send_json(payload)
             except Exception:
-                dead.append(ws)
-        for ws in dead:
-            self.active.remove(ws)
+                disconnected.append(websocket)
+
+        for websocket in disconnected:
+            self.disconnect(websocket)
 
 
 manager = ConnectionManager()
 
 
-# ─── App factory ──────────────────────────────────────────────────────────────
+def _raise_http(exc: Exception) -> None:
+    if isinstance(exc, KeyError):
+        raise HTTPException(status_code=404, detail=str(exc).strip("'")) from exc
+    if isinstance(exc, ValueError):
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    raise exc
+
+
+async def _reminder_loop() -> None:
+    while True:
+        generated = store.generate_due_reminders()
+        if generated:
+            await manager.broadcast({"event": "reminders_generated", "count": generated})
+        await asyncio.sleep(30)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("✅ BioSync backend starting — Isolation Forest loaded.")
-    yield
-    print("🛑 BioSync backend shutting down.")
+    reminder_task = asyncio.create_task(_reminder_loop())
+    try:
+        yield
+    finally:
+        reminder_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await reminder_task
+
 
 app = FastAPI(
     title="BioSync Tele-Rescue API",
-    description=(
-        "Healthcare PS 1 — Doctor Availability & Teleconsultation Platform. "
-        "Edge-AI wearable vitals → anomaly detection → auto-dial emergency doctor."
-    ),
-    version="1.0.0",
+    description="Doctor availability and teleconsultation platform backend.",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -99,29 +102,34 @@ app.add_middleware(
 )
 
 
-# ─── Health ───────────────────────────────────────────────────────────────────
-
 @app.get("/health", tags=["Meta"])
-def health():
+def health() -> dict[str, str]:
     return {"status": "ok", "service": "BioSync Tele-Rescue Backend"}
 
 
-# ─── Vitals ingestion + anomaly detection ─────────────────────────────────────
+@app.post("/auth/login", response_model=AuthResponse, tags=["Auth"])
+def login(request: LoginRequest) -> AuthResponse:
+    try:
+        return store.login_user(request)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
+
+
+@app.post("/auth/register", response_model=AuthResponse, tags=["Auth"])
+def register(request: RegisterRequest) -> AuthResponse:
+    try:
+        return store.register_user(request)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
+
 
 @app.post("/vitals", response_model=AnomalyEvent, tags=["Vitals & Anomaly"])
-async def ingest_vitals(payload: VitalsPayload):
-    """
-    Accepts patient vitals, runs Isolation Forest + clinical threshold check,
-    generates an LLM triage brief on anomaly, and broadcasts to WS subscribers.
-    """
+async def ingest_vitals(payload: VitalsPayload) -> AnomalyEvent:
     if payload.timestamp is None:
         payload.timestamp = datetime.now(timezone.utc).isoformat()
 
     is_anomaly, score = detect(payload)
-
-    triage_brief = ""
-    if is_anomaly:
-        triage_brief = get_triage_brief(payload, score)
+    triage_brief = get_triage_brief(payload, score) if is_anomaly else ""
 
     event = AnomalyEvent(
         vitals=payload,
@@ -129,161 +137,138 @@ async def ingest_vitals(payload: VitalsPayload):
         is_anomaly=is_anomaly,
         triage_brief=triage_brief,
     )
-
-    # Broadcast to all connected doctor dashboards
-    await manager.broadcast(event.model_dump())
-
+    await manager.broadcast({"event": "vitals", "payload": event.model_dump()})
     return event
 
 
-# ─── WebSocket — live doctor dashboard feed ────────────────────────────────────
-
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """
-    Connect here to receive real-time vitals frames and anomaly events.
-    Intended for the Doctor Dashboard (Streamlit or any WS client).
-    """
+async def websocket_endpoint(websocket: WebSocket) -> None:
     await manager.connect(websocket)
     try:
         while True:
-            # Keep connection alive; data is pushed via broadcast()
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
 
-# ─── Doctor listing & availability ────────────────────────────────────────────
-
-@app.get("/doctors", response_model=List[Doctor], tags=["Doctor Availability"])
-def list_doctors(status: str = None):
-    """Return all doctors, optionally filtered by status (available/busy/offline)."""
-    if status:
-        return [d for d in DOCTORS if d.status == status]
-    return DOCTORS
+@app.get("/patients", response_model=List[PatientProfile], tags=["Patients"])
+def list_patients() -> list[PatientProfile]:
+    return store.list_patients()
 
 
-@app.get("/doctors/{doctor_id}", response_model=Doctor, tags=["Doctor Availability"])
-def get_doctor(doctor_id: str):
-    for d in DOCTORS:
-        if d.id == doctor_id:
-            return d
-    raise HTTPException(status_code=404, detail="Doctor not found")
+@app.get("/patients/{patient_id}", response_model=PatientProfile, tags=["Patients"])
+def get_patient(patient_id: str) -> PatientProfile:
+    try:
+        return store.get_patient(patient_id)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
 
 
-@app.patch("/doctors/{doctor_id}/status", response_model=Doctor, tags=["Doctor Availability"])
-def update_doctor_status(doctor_id: str, status: str):
-    """Update a doctor's availability status (available/busy/offline)."""
-    for d in DOCTORS:
-        if d.id == doctor_id:
-            d.status = status
-            return d
-    raise HTTPException(status_code=404, detail="Doctor not found")
+@app.get("/doctors", response_model=List[Doctor], tags=["Doctors"])
+def list_doctors(status: Optional[str] = None) -> list[Doctor]:
+    return store.list_doctors(status=status)
 
 
-# ─── Appointment booking ───────────────────────────────────────────────────────
+@app.get("/doctors/{doctor_id}", response_model=Doctor, tags=["Doctors"])
+def get_doctor(doctor_id: str) -> Doctor:
+    try:
+        return store.get_doctor(doctor_id)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
+
+
+@app.patch("/doctors/{doctor_id}/status", response_model=Doctor, tags=["Doctors"])
+def update_doctor_status(doctor_id: str, request: DoctorStatusUpdateRequest) -> Doctor:
+    try:
+        return store.update_doctor_status(doctor_id, request.status)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
+
 
 @app.post("/appointments", response_model=Appointment, tags=["Appointments"])
-async def book_appointment(req: AppointmentRequest):
-    """Book a teleconsultation appointment with an available doctor."""
-    doctor = next((d for d in DOCTORS if d.id == req.doctor_id), None)
-    if not doctor:
-        raise HTTPException(status_code=404, detail="Doctor not found")
-    if doctor.status != "available":
-        raise HTTPException(status_code=409, detail=f"Doctor is currently {doctor.status}")
+async def book_appointment(request: AppointmentRequest) -> Appointment:
+    try:
+        appointment = store.create_appointment(request)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
 
-    appt_id = str(uuid.uuid4())[:8]
-    now     = datetime.now(timezone.utc).isoformat()
-
-    appt = Appointment(
-        **req.model_dump(),
-        appointment_id=appt_id,
-        status="confirmed",
-        created_at=now,
-    )
-    appointments[appt_id] = appt
-
-    # Mark doctor as busy
-    doctor.status = "busy"
-
-    # Create notification for patient
-    _add_notification(
-        uid=req.patient_id,
-        message=f"Your appointment with {doctor.name} is confirmed (ID: {appt_id}).",
-        notif_type="appointment",
-    )
-    # Create notification for doctor
-    _add_notification(
-        uid=req.doctor_id,
-        message=f"New appointment with patient {req.patient_name} (ID: {appt_id}).",
-        notif_type="appointment",
-    )
-
-    # Broadcast appointment event to WS
-    await manager.broadcast({"event": "appointment_booked", "appointment": appt.model_dump()})
-    return appt
+    await manager.broadcast({"event": "appointment_created", "appointment": appointment.model_dump()})
+    return appointment
 
 
-@app.get("/appointments/{appt_id}", response_model=Appointment, tags=["Appointments"])
-def get_appointment(appt_id: str):
-    if appt_id not in appointments:
-        raise HTTPException(status_code=404, detail="Appointment not found")
-    return appointments[appt_id]
+@app.get("/appointments", response_model=List[Appointment], tags=["Appointments"])
+def list_appointments(
+    user_id: Optional[str] = None,
+    role: Optional[str] = Query(default=None, pattern="^(patient|doctor)$"),
+    status: Optional[str] = None,
+) -> list[Appointment]:
+    return store.list_appointments(user_id=user_id, role=role, status=status)
 
 
-# ─── Notifications ────────────────────────────────────────────────────────────
+@app.get("/appointments/{appointment_id}", response_model=Appointment, tags=["Appointments"])
+def get_appointment(appointment_id: str) -> Appointment:
+    try:
+        return store.get_appointment(appointment_id)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
+
+
+@app.patch("/appointments/{appointment_id}", response_model=Appointment, tags=["Appointments"])
+async def update_appointment(appointment_id: str, request: AppointmentUpdateRequest) -> Appointment:
+    try:
+        appointment = store.update_appointment(appointment_id, request)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
+
+    await manager.broadcast({"event": "appointment_updated", "appointment": appointment.model_dump()})
+    return appointment
+
 
 @app.get("/notifications/{uid}", response_model=List[Notification], tags=["Notifications"])
-def get_notifications(uid: str):
-    """Get all notifications for a patient or doctor by their ID."""
-    return notifications.get(uid, [])
+def get_notifications(uid: str, unread_only: bool = False) -> list[Notification]:
+    return store.get_notifications(uid, unread_only=unread_only)
 
 
-@app.patch("/notifications/{uid}/{notif_id}/read", tags=["Notifications"])
-def mark_notification_read(uid: str, notif_id: str):
-    for n in notifications.get(uid, []):
-        if n.notification_id == notif_id:
-            n.read = True
-            return {"status": "marked_read"}
-    raise HTTPException(status_code=404, detail="Notification not found")
+@app.patch("/notifications/{uid}/{notification_id}/read", tags=["Notifications"])
+def mark_notification_read(uid: str, notification_id: str) -> dict[str, str]:
+    try:
+        store.mark_notification_read(uid, notification_id)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
+
+    return {"status": "marked_read"}
 
 
-# ─── Patient feedback ─────────────────────────────────────────────────────────
+@app.post("/notifications/process-reminders", tags=["Notifications"])
+async def process_reminders() -> dict[str, int]:
+    generated = store.generate_due_reminders()
+    if generated:
+        await manager.broadcast({"event": "reminders_generated", "count": generated})
+    return {"generated": generated}
+
 
 @app.post("/feedback", response_model=Feedback, tags=["Feedback"])
-def submit_feedback(req: FeedbackRequest):
-    """Submit patient feedback and rating for a doctor after consultation."""
-    if not (1 <= req.rating <= 5):
-        raise HTTPException(status_code=422, detail="Rating must be between 1 and 5")
+async def submit_feedback(request: FeedbackRequest) -> Feedback:
+    try:
+        feedback = store.submit_feedback(request)
+    except Exception as exc:  # pragma: no cover - mapped to HTTP
+        _raise_http(exc)
 
-    fb_id = str(uuid.uuid4())[:8]
-    now   = datetime.now(timezone.utc).isoformat()
-
-    feedback = Feedback(**req.model_dump(), feedback_id=fb_id, created_at=now)
-    feedbacks[fb_id] = feedback
-
-    # Update doctor's average rating (simple rolling avg)
-    doctor = next((d for d in DOCTORS if d.id == req.doctor_id), None)
-    if doctor:
-        all_ratings = [f.rating for f in feedbacks.values() if f.doctor_id == doctor.id]
-        doctor.rating = round(sum(all_ratings) / len(all_ratings), 2)
-
+    await manager.broadcast({"event": "feedback_created", "feedback": feedback.model_dump()})
     return feedback
 
 
-@app.get("/feedback/{doctor_id}", response_model=List[Feedback], tags=["Feedback"])
-def get_doctor_feedback(doctor_id: str):
-    return [f for f in feedbacks.values() if f.doctor_id == doctor_id]
+@app.get("/feedback", response_model=List[Feedback], tags=["Feedback"])
+def list_feedback(
+    doctor_id: Optional[str] = None,
+    patient_id: Optional[str] = None,
+) -> list[Feedback]:
+    return store.list_feedback(doctor_id=doctor_id, patient_id=patient_id)
 
 
-# ─── Internal helpers ─────────────────────────────────────────────────────────
-
-def _add_notification(uid: str, message: str, notif_type: str):
-    notif = Notification(
-        notification_id=str(uuid.uuid4())[:8],
-        recipient_id=uid,
-        message=message,
-        type=notif_type,
-        created_at=datetime.now(timezone.utc).isoformat(),
-    )
-    notifications.setdefault(uid, []).append(notif)
+@app.get("/feedback/summary", response_model=FeedbackSummary, tags=["Feedback"])
+def feedback_summary(
+    doctor_id: Optional[str] = None,
+    patient_id: Optional[str] = None,
+) -> FeedbackSummary:
+    return store.feedback_summary(doctor_id=doctor_id, patient_id=patient_id)

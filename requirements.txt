@@ -1,6 +1,6 @@
+-r backend/requirements.txt
 streamlit
 pandas
-numpy
 plotly
 streamlit-webrtc
 aiortc

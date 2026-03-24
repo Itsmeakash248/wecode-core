@@ -1,0 +1,300 @@
+{
+  "doctors": [
+    {
+      "id": "d1",
+      "name": "Dr. Priya Sharma",
+      "specialty": "Cardiology",
+      "status": "available",
+      "rating": 5.0,
+      "experience": 12,
+      "avatar_url": null,
+      "current_appointment_id": null
+    },
+    {
+      "id": "d2",
+      "name": "Dr. Rajan Mehta",
+      "specialty": "General Medicine",
+      "status": "available",
+      "rating": 4.7,
+      "experience": 9,
+      "avatar_url": null,
+      "current_appointment_id": null
+    },
+    {
+      "id": "d3",
+      "name": "Dr. Ananya Bose",
+      "specialty": "Emergency Medicine",
+      "status": "available",
+      "rating": 4.8,
+      "experience": 14,
+      "avatar_url": null,
+      "current_appointment_id": null
+    },
+    {
+      "id": "d4",
+      "name": "Dr. Vikram Singh",
+      "specialty": "Pulmonology",
+      "status": "busy",
+      "rating": 4.6,
+      "experience": 11,
+      "avatar_url": null,
+      "current_appointment_id": null
+    },
+    {
+      "id": "d5",
+      "name": "Dr. Sunita Reddy",
+      "specialty": "Neurology",
+      "status": "offline",
+      "rating": 4.5,
+      "experience": 17,
+      "avatar_url": null,
+      "current_appointment_id": null
+    }
+  ],
+  "patients": [
+    {
+      "id": "p1",
+      "name": "John Doe",
+      "age": 45,
+      "condition": "Hypertension",
+      "last_visit": "2026-03-10T09:00:00+00:00",
+      "risk_level": "Medium"
+    },
+    {
+      "id": "p2",
+      "name": "Sarah Wilson",
+      "age": 32,
+      "condition": "Cardiac Arrhythmia",
+      "last_visit": "2026-03-14T11:00:00+00:00",
+      "risk_level": "High"
+    },
+    {
+      "id": "p3",
+      "name": "Mike Johnson",
+      "age": 58,
+      "condition": "Diabetes",
+      "last_visit": "2026-03-11T13:30:00+00:00",
+      "risk_level": "Medium"
+    },
+    {
+      "id": "p4",
+      "name": "Emma Davis",
+      "age": 29,
+      "condition": "Anxiety",
+      "last_visit": "2026-03-13T16:15:00+00:00",
+      "risk_level": "Low"
+    },
+    {
+      "id": "p5",
+      "name": "Robert Brown",
+      "age": 67,
+      "condition": "COPD",
+      "last_visit": "2026-03-09T08:45:00+00:00",
+      "risk_level": "High"
+    }
+  ],
+  "users": {
+    "00afb9e3": {
+      "id": "00afb9e3",
+      "email": "john.doe@biosync.local",
+      "full_name": "John Doe",
+      "role": "patient",
+      "linked_profile_id": "p1",
+      "password_salt": "b71aaee0f3339bcbec2e0c34bf98b96c",
+      "password_hash": "1e50cf2177c57e949efd0ff291a81f9c7e5e81dbb12e82adaa9a7b4d48d67808",
+      "created_at": "2026-03-24T08:53:31.656793+00:00"
+    },
+    "6235c159": {
+      "id": "6235c159",
+      "email": "sarah.wilson@biosync.local",
+      "full_name": "Sarah Wilson",
+      "role": "patient",
+      "linked_profile_id": "p2",
+      "password_salt": "1ec50536cae5a92e175d01dc1e181adf",
+      "password_hash": "b18a445a822d40d33c47d29d9966dbedff2f57988a0ba7047ad6518f3a79d9a9",
+      "created_at": "2026-03-24T08:53:31.700715+00:00"
+    },
+    "5a7d1147": {
+      "id": "5a7d1147",
+      "email": "mike.johnson@biosync.local",
+      "full_name": "Mike Johnson",
+      "role": "patient",
+      "linked_profile_id": "p3",
+      "password_salt": "41a3af02c6947c775a5c8b03dad649ce",
+      "password_hash": "cf809706132121e325c120a5b1b3e32461dceafef7ced37d2cc7356d08d8b777",
+      "created_at": "2026-03-24T08:53:31.745502+00:00"
+    },
+    "76ecd105": {
+      "id": "76ecd105",
+      "email": "emma.davis@biosync.local",
+      "full_name": "Emma Davis",
+      "role": "patient",
+      "linked_profile_id": "p4",
+      "password_salt": "cf176baf094a10092c466194ce46c5ec",
+      "password_hash": "f20fad13504bcb6f314fb9218224ff945f402d554fb6a29d380a75d2e549040f",
+      "created_at": "2026-03-24T08:53:31.789544+00:00"
+    },
+    "7d9cff0d": {
+      "id": "7d9cff0d",
+      "email": "robert.brown@biosync.local",
+      "full_name": "Robert Brown",
+      "role": "patient",
+      "linked_profile_id": "p5",
+      "password_salt": "c94bbadb1fa3c7c71a251987513bc96a",
+      "password_hash": "822e7b022701695bfd270724af6e9efef066f5f05918670c40539306aea8ebc8",
+      "created_at": "2026-03-24T08:53:31.831234+00:00"
+    },
+    "1013600e": {
+      "id": "1013600e",
+      "email": "priya.sharma@biosync.local",
+      "full_name": "Dr. Priya Sharma",
+      "role": "doctor",
+      "linked_profile_id": "d1",
+      "password_salt": "464c9561279b008a7fdf6e2bbe5b1052",
+      "password_hash": "10805fc14a3b23ca17e6c1a00172695bdb812ab8099e1020cf0147f21deaf6e4",
+      "created_at": "2026-03-24T08:53:31.863251+00:00"
+    },
+    "8d7bdae1": {
+      "id": "8d7bdae1",
+      "email": "rajan.mehta@biosync.local",
+      "full_name": "Dr. Rajan Mehta",
+      "role": "doctor",
+      "linked_profile_id": "d2",
+      "password_salt": "80b80963a930ae419152aae8cac1a79e",
+      "password_hash": "c3c828ac2d28a7101c0af98ce718b51fd0964027371ceccf2d4a3b4bb62ab584",
+      "created_at": "2026-03-24T08:53:31.886188+00:00"
+    },
+    "fa0d4401": {
+      "id": "fa0d4401",
+      "email": "ananya.bose@biosync.local",
+      "full_name": "Dr. Ananya Bose",
+      "role": "doctor",
+      "linked_profile_id": "d3",
+      "password_salt": "15111b46f52a424a41d7943c58cf90df",
+      "password_hash": "87e60389aa340e93f1ed56feafa82573c572eba1add537064ffdfa86538c6c96",
+      "created_at": "2026-03-24T08:53:31.923413+00:00"
+    },
+    "2a416e78": {
+      "id": "2a416e78",
+      "email": "vikram.singh@biosync.local",
+      "full_name": "Dr. Vikram Singh",
+      "role": "doctor",
+      "linked_profile_id": "d4",
+      "password_salt": "cf30f908ad198caa377de03772e34007",
+      "password_hash": "633bd1ed8d3310e08c57da03e17dfde4090b7f977b9b160168203c0a7082a28b",
+      "created_at": "2026-03-24T08:53:31.986015+00:00"
+    },
+    "fe42f864": {
+      "id": "fe42f864",
+      "email": "sunita.reddy@biosync.local",
+      "full_name": "Dr. Sunita Reddy",
+      "role": "doctor",
+      "linked_profile_id": "d5",
+      "password_salt": "a1a00f6ca567a6494e9e8993c9651b0f",
+      "password_hash": "2b27143cd66b6f143de15fdffc5913ee3f7a0b9806491cef7cbe097d6c517830",
+      "created_at": "2026-03-24T08:53:32.039714+00:00"
+    }
+  },
+  "appointments": {
+    "0589a51d": {
+      "patient_name": "John Doe",
+      "patient_id": "p1",
+      "doctor_id": "d1",
+      "symptoms": "Recurring headache and dizziness",
+      "scheduled_time": "2026-03-24T08:50:00+00:00",
+      "consultation_type": "Consultation",
+      "appointment_id": "0589a51d",
+      "doctor_name": "Dr. Priya Sharma",
+      "consultation_room_id": "ROOM-0589A51D",
+      "status": "completed",
+      "created_at": "2026-03-24T08:40:35.329716+00:00",
+      "updated_at": "2026-03-24T08:43:33.549441+00:00",
+      "reminder_sent": true
+    }
+  },
+  "notifications": {
+    "p1": [
+      {
+        "notification_id": "189f16da",
+        "recipient_id": "p1",
+        "message": "Appointment confirmed with Dr. Priya Sharma for 2026-03-24T08:50:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T08:40:35.330785+00:00",
+        "appointment_id": "0589a51d"
+      },
+      {
+        "notification_id": "98ebb7ae",
+        "recipient_id": "p1",
+        "message": "Reminder: appointment 0589a51d with Dr. Priya Sharma starts at 2026-03-24T08:50:00+00:00.",
+        "type": "reminder",
+        "read": false,
+        "created_at": "2026-03-24T08:40:42.586044+00:00",
+        "appointment_id": "0589a51d"
+      },
+      {
+        "notification_id": "3c9755f4",
+        "recipient_id": "p1",
+        "message": "Consultation for appointment 0589a51d is now live. Join room ROOM-0589A51D.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T08:42:52.193340+00:00",
+        "appointment_id": "0589a51d"
+      },
+      {
+        "notification_id": "d2d89ba0",
+        "recipient_id": "p1",
+        "message": "Appointment 0589a51d is completed. Please submit your feedback.",
+        "type": "feedback",
+        "read": true,
+        "created_at": "2026-03-24T08:43:33.549400+00:00",
+        "appointment_id": "0589a51d"
+      }
+    ],
+    "d1": [
+      {
+        "notification_id": "c5491688",
+        "recipient_id": "d1",
+        "message": "New consultation appointment with John Doe at 2026-03-24T08:50:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T08:40:35.330884+00:00",
+        "appointment_id": "0589a51d"
+      },
+      {
+        "notification_id": "579ea001",
+        "recipient_id": "d1",
+        "message": "Reminder: consultation with John Doe starts at 2026-03-24T08:50:00+00:00.",
+        "type": "reminder",
+        "read": false,
+        "created_at": "2026-03-24T08:40:42.586111+00:00",
+        "appointment_id": "0589a51d"
+      },
+      {
+        "notification_id": "3b5ebe10",
+        "recipient_id": "d1",
+        "message": "New feedback received from John Doe for appointment 0589a51d.",
+        "type": "feedback",
+        "read": false,
+        "created_at": "2026-03-24T08:43:56.804054+00:00",
+        "appointment_id": "0589a51d"
+      }
+    ]
+  },
+  "feedbacks": {
+    "5beac139": {
+      "patient_id": "p1",
+      "doctor_id": "d1",
+      "appointment_id": "0589a51d",
+      "rating": 5,
+      "communication": 5,
+      "wait_time": 4,
+      "recommend": true,
+      "comment": "Clear diagnosis and smooth video consultation.",
+      "feedback_id": "5beac139",
+      "patient_name": "John Doe",
+      "doctor_name": "Dr. Priya Sharma",
+      "created_at": "2026-03-24T08:43:56.803993+00:00"
+    }
+  }
+}
