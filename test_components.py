@@ -36,6 +36,30 @@ def test_data_manager():
         assert 'Heart Rate' in vitals
         print("✅ Data manager vitals test passed")
 
+        # Test feedback pipeline
+        before_count = len(data_manager.get_feedback_entries())
+        data_manager.submit_feedback(
+            patient="Test Patient",
+            doctor="Dr. Sarah Johnson",
+            consultation_type="Consultation",
+            rating=5,
+            communication=5,
+            wait_time=4,
+            recommend=True,
+            comments="Automated test feedback entry",
+        )
+        after_count = len(data_manager.get_feedback_entries())
+        assert after_count == before_count + 1
+
+        summary = data_manager.get_feedback_summary()
+        assert isinstance(summary, dict)
+        assert 'avg_rating' in summary
+
+        trends = data_manager.get_feedback_trends(days=7)
+        assert not trends.empty
+        assert 'Avg Rating' in trends.columns
+        print("✅ Data manager feedback pipeline test passed")
+
         return True
     except Exception as e:
         print(f"❌ Data manager test failed: {e}")

@@ -538,6 +538,79 @@ class PatientDashboard:
             section_title="Patient Consultation Room (WebRTC)"
         )
 
+        st.markdown("---")
+        PatientDashboard._render_feedback_section()
+
+    @staticmethod
+    def _render_feedback_section():
+        """Render patient feedback form and recent submissions."""
+        st.markdown("### ⭐ Patient Feedback")
+        st.caption("Share your consultation experience to help us improve care quality.")
+
+        patient_names = [patient["name"] for patient in data_manager.patients]
+        doctor_names = [doctor["name"] for doctor in data_manager.doctors]
+
+        with st.form("patient_feedback_form", clear_on_submit=True):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                selected_patient = st.selectbox("Patient Name", patient_names, key="feedback_patient")
+                selected_doctor = st.selectbox("Consulting Doctor", doctor_names, key="feedback_doctor")
+                consultation_type = st.selectbox(
+                    "Consultation Type",
+                    ["Emergency", "Follow-up", "Consultation", "Checkup", "Therapy"],
+                    key="feedback_type",
+                )
+
+            with col2:
+                overall_rating = st.slider("Overall Rating", min_value=1, max_value=5, value=5, key="feedback_rating")
+                communication_rating = st.slider("Communication Quality", min_value=1, max_value=5, value=5, key="feedback_communication")
+                wait_time_rating = st.slider("Wait Time Experience", min_value=1, max_value=5, value=4, key="feedback_wait_time")
+
+            recommend = st.checkbox("I would recommend this doctor/service", value=True, key="feedback_recommend")
+            comments = st.text_area(
+                "Additional Comments",
+                placeholder="Describe what worked well and what can be improved...",
+                key="feedback_comments",
+            )
+
+            submitted = st.form_submit_button("📨 Submit Feedback", type="primary")
+
+            if submitted:
+                if not comments.strip():
+                    st.warning("Please add a short comment before submitting feedback.")
+                else:
+                    data_manager.submit_feedback(
+                        patient=selected_patient,
+                        doctor=selected_doctor,
+                        consultation_type=consultation_type,
+                        rating=overall_rating,
+                        communication=communication_rating,
+                        wait_time=wait_time_rating,
+                        recommend=recommend,
+                        comments=comments,
+                    )
+                    st.success("Thank you. Your feedback has been recorded successfully.")
+
+        st.markdown("#### 🕒 Recent Feedback Submitted")
+        recent_feedback = data_manager.get_feedback_entries()[:5]
+
+        if not recent_feedback:
+            st.info("No feedback submitted yet.")
+            return
+
+        for item in recent_feedback:
+            recommend_text = "Yes" if item["recommend"] else "No"
+            with st.expander(
+                f"{item['patient']} • {item['doctor']} • {item['rating']}/5 • {item['created_at']}",
+                expanded=False,
+            ):
+                st.markdown(f"**Type:** {item['consultation_type']}")
+                st.markdown(f"**Communication:** {item['communication']}/5")
+                st.markdown(f"**Wait Time:** {item['wait_time']}/5")
+                st.markdown(f"**Would Recommend:** {recommend_text}")
+                st.markdown(f"**Comment:** {item['comments']}")
+
 
 class DoctorDashboard:
     """Doctor dashboard component"""
@@ -557,7 +630,7 @@ class DoctorDashboard:
         """.format(datetime.now().strftime("%I:%M %p")), unsafe_allow_html=True)
 
         # Sidebar Navigation
-        nav_options = ["📊 Dashboard", "📅 Appointments", "👥 Patients", "💬 Consultation", "📈 Reports", "🚨 Emergency"]
+        nav_options = ["📊 Dashboard", "📅 Appointments", "👥 Patients", "💬 Consultation", "⭐ Feedback", "📈 Reports", "🚨 Emergency"]
         selected_nav = st.sidebar.radio("", nav_options, index=0, key="doctor_nav", label_visibility="collapsed")
 
         st.sidebar.markdown("---")
@@ -573,6 +646,8 @@ class DoctorDashboard:
             DoctorDashboard._render_patients()
         elif selected_nav == "💬 Consultation":
             DoctorDashboard._render_consultation()
+        elif selected_nav == "⭐ Feedback":
+            DoctorDashboard._render_feedback_dashboard()
         elif selected_nav == "📈 Reports":
             DoctorDashboard._render_reports()
         elif selected_nav == "🚨 Emergency":
@@ -951,13 +1026,123 @@ class DoctorDashboard:
         )
 
     @staticmethod
+    def _render_feedback_dashboard():
+        """Render doctor-facing patient feedback analytics and review center."""
+        st.markdown("### ⭐ Patient Feedback Center")
+
+        doctor_options = ["All"] + [doctor["name"] for doctor in data_manager.doctors]
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            doctor_filter = st.selectbox("Doctor Filter", doctor_options, key="feedback_doctor_filter")
+        with col2:
+            min_rating = st.selectbox("Minimum Rating", [1, 2, 3, 4, 5], index=0, key="feedback_min_rating")
+        with col3:
+            recent_days = st.selectbox("Time Window", [7, 14, 30, 90], index=1, key="feedback_recent_days")
+
+        summary = data_manager.get_feedback_summary(doctor_filter)
+
+        metric_col1, metric_col2, metric_col3, metric_col4, metric_col5 = st.columns(5)
+        with metric_col1:
+            st.metric("Total Feedback", summary["total_feedback"])
+        with metric_col2:
+            st.metric("Avg Rating", f"{summary['avg_rating']}/5")
+        with metric_col3:
+            st.metric("Communication", f"{summary['avg_communication']}/5")
+        with metric_col4:
+            st.metric("Wait Time", f"{summary['avg_wait_time']}/5")
+        with metric_col5:
+            st.metric("Recommend Rate", f"{summary['recommend_percent']}%")
+
+        if summary["low_ratings"] > 0:
+            st.warning(f"{summary['low_ratings']} low-rating feedback entries (<=2 stars) need review.")
+        else:
+            st.success("No critical low-rating feedback in current dataset.")
+
+        filtered_entries = data_manager.get_feedback_entries(
+            doctor_filter=doctor_filter,
+            min_rating=min_rating,
+            recent_days=recent_days,
+        )
+
+        chart_col1, chart_col2 = st.columns(2)
+        with chart_col1:
+            st.markdown("#### Rating Distribution")
+            distribution = data_manager.get_feedback_rating_distribution(doctor_filter)
+            dist_df = pd.DataFrame(
+                {"Stars": list(distribution.keys()), "Count": list(distribution.values())}
+            )
+            fig_dist = px.bar(
+                dist_df,
+                x="Stars",
+                y="Count",
+                color="Stars",
+                color_discrete_sequence=["#ef4444", "#f97316", "#f59e0b", "#10b981", "#2563eb"],
+                title="Feedback by Star Rating",
+            )
+            fig_dist.update_layout(showlegend=False, height=320)
+            st.plotly_chart(fig_dist, use_container_width=True)
+
+        with chart_col2:
+            st.markdown("#### Feedback Trend (14 Days)")
+            trend_df = data_manager.get_feedback_trends(doctor_filter=doctor_filter, days=14)
+            fig_trend = px.line(
+                trend_df,
+                x="Date",
+                y="Avg Rating",
+                markers=True,
+                title="Average Rating Over Time",
+                color_discrete_sequence=["#2563eb"],
+            )
+            fig_trend.update_layout(yaxis_range=[0, 5], height=320)
+            st.plotly_chart(fig_trend, use_container_width=True)
+
+        st.markdown("#### Detailed Feedback")
+        if not filtered_entries:
+            st.info("No feedback matches the current filters.")
+            return
+
+        feedback_df = pd.DataFrame(filtered_entries)
+        feedback_df = feedback_df.rename(
+            columns={
+                "created_at": "Submitted At",
+                "consultation_type": "Type",
+                "communication": "Communication",
+                "wait_time": "Wait Time",
+                "recommend": "Recommend",
+                "comments": "Comments",
+                "patient": "Patient",
+                "doctor": "Doctor",
+                "rating": "Rating",
+            }
+        )
+        feedback_df["Recommend"] = feedback_df["Recommend"].map({True: "Yes", False: "No"})
+
+        st.dataframe(
+            feedback_df[
+                [
+                    "Submitted At",
+                    "Patient",
+                    "Doctor",
+                    "Type",
+                    "Rating",
+                    "Communication",
+                    "Wait Time",
+                    "Recommend",
+                    "Comments",
+                ]
+            ],
+            use_container_width=True,
+        )
+
+    @staticmethod
     def _render_reports():
         """Render reports and analytics"""
         st.markdown("### 📈 Reports & Analytics")
 
         # Report Type Selection
         report_type = st.selectbox("Select Report Type",
-                                  ["Consultation Summary", "Patient Demographics", "Emergency Response", "Revenue Report"])
+                                  ["Consultation Summary", "Patient Demographics", "Patient Feedback", "Emergency Response", "Revenue Report"])
 
         if report_type == "Consultation Summary":
             st.subheader("📊 Consultation Summary Report")
@@ -988,6 +1173,32 @@ class DoctorDashboard:
             fig = px.bar(age_data, x='Age Group', y='Count',
                         title='Patient Distribution by Age Group',
                         color='Count', color_continuous_scale='Blues')
+            st.plotly_chart(fig, use_container_width=True)
+
+        elif report_type == "Patient Feedback":
+            st.subheader("⭐ Patient Feedback Report")
+            summary = data_manager.get_feedback_summary()
+
+            report_col1, report_col2, report_col3, report_col4 = st.columns(4)
+            with report_col1:
+                ui.create_metric_card("Total Feedback", str(summary["total_feedback"]), "All submitted entries")
+            with report_col2:
+                ui.create_metric_card("Avg Rating", f"{summary['avg_rating']}/5", "Overall patient score")
+            with report_col3:
+                ui.create_metric_card("Recommend Rate", f"{summary['recommend_percent']}%", "Would recommend service")
+            with report_col4:
+                ui.create_metric_card("Low Ratings", str(summary["low_ratings"]), "Needs quality follow-up")
+
+            trend_df = data_manager.get_feedback_trends(days=30)
+            fig = px.line(
+                trend_df,
+                x="Date",
+                y="Avg Rating",
+                markers=True,
+                title="30-Day Patient Feedback Trend",
+                color_discrete_sequence=["#2563eb"],
+            )
+            fig.update_layout(yaxis_range=[0, 5])
             st.plotly_chart(fig, use_container_width=True)
 
         else:

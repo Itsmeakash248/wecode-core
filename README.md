@@ -10,6 +10,7 @@ An autonomous edge-AI teleconsultation platform that revolutionizes emergency he
 - **Enhanced UI/UX**: Modern healthcare-focused design with improved animations
 - **Advanced Features**: Patient search, appointment management, emergency alerts
 - **Live Consultation**: WebRTC-based video/audio consultation with room chat
+- **Patient Feedback System**: End-to-end feedback capture, analytics, and quality monitoring
 - **Better Performance**: Optimized code structure and data management
 - **Professional Dashboard**: Comprehensive telemedicine interface
 
@@ -44,6 +45,7 @@ An autonomous edge-AI teleconsultation platform that revolutionizes emergency he
 - **Emergency Response**: Quick action buttons for critical situations
 - **Report Generation**: Export options for various report types
 - **Real-time Updates**: Live data feeds and notifications
+- **Patient Feedback**: Submit ratings/comments and track satisfaction trends
 - **🤖 AI-Powered Detection**: Edge-AI wearables detect critical vitals anomalies
 - **🚨 Auto-Dial Emergency**: Automatically initiates teleconsultation when anomalies are detected
 - **📹 Live Video & Vitals**: Streams live patient vitals and video feed to available doctors

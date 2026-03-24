@@ -7,7 +7,7 @@ import random
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 
 class DataManager:
@@ -17,6 +17,7 @@ class DataManager:
         self.doctors = self._generate_doctors()
         self.patients = self._generate_patients()
         self.appointments = self._generate_appointments()
+        self.feedback_entries = self._generate_feedback_entries()
 
     def _generate_doctors(self) -> List[Dict[str, Any]]:
         """Generate mock doctor data"""
@@ -49,6 +50,170 @@ class DataManager:
             {"id": 4, "patient_id": 4, "doctor_id": 4, "time": "03:30 PM", "date": "2024-01-15", "type": "Therapy", "status": "Scheduled"},
         ]
         return appointments_data
+
+    def _generate_feedback_entries(self) -> List[Dict[str, Any]]:
+        """Generate initial mock feedback records."""
+        return [
+            {
+                "id": 1,
+                "patient": "John Doe",
+                "doctor": "Dr. Sarah Johnson",
+                "consultation_type": "Follow-up",
+                "rating": 5,
+                "communication": 5,
+                "wait_time": 4,
+                "recommend": True,
+                "comments": "Very clear explanation and fast response.",
+                "created_at": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S"),
+            },
+            {
+                "id": 2,
+                "patient": "Sarah Wilson",
+                "doctor": "Dr. Michael Chen",
+                "consultation_type": "Emergency",
+                "rating": 4,
+                "communication": 4,
+                "wait_time": 5,
+                "recommend": True,
+                "comments": "Handled the emergency calmly and quickly.",
+                "created_at": (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S"),
+            },
+            {
+                "id": 3,
+                "patient": "Emma Davis",
+                "doctor": "Dr. David Kim",
+                "consultation_type": "Consultation",
+                "rating": 3,
+                "communication": 4,
+                "wait_time": 2,
+                "recommend": False,
+                "comments": "Doctor was helpful, but waiting time was long.",
+                "created_at": (datetime.now() - timedelta(days=4)).strftime("%Y-%m-%d %H:%M:%S"),
+            },
+            {
+                "id": 4,
+                "patient": "Mike Johnson",
+                "doctor": "Dr. Emily Rodriguez",
+                "consultation_type": "Checkup",
+                "rating": 5,
+                "communication": 5,
+                "wait_time": 4,
+                "recommend": True,
+                "comments": "Excellent consultation and actionable advice.",
+                "created_at": (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"),
+            },
+        ]
+
+    def submit_feedback(
+        self,
+        patient: str,
+        doctor: str,
+        consultation_type: str,
+        rating: int,
+        communication: int,
+        wait_time: int,
+        recommend: bool,
+        comments: str,
+    ) -> Dict[str, Any]:
+        """Persist a new patient feedback entry in memory."""
+        next_id = max((entry["id"] for entry in self.feedback_entries), default=0) + 1
+        entry = {
+            "id": next_id,
+            "patient": patient,
+            "doctor": doctor,
+            "consultation_type": consultation_type,
+            "rating": int(rating),
+            "communication": int(communication),
+            "wait_time": int(wait_time),
+            "recommend": bool(recommend),
+            "comments": comments.strip(),
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        self.feedback_entries.append(entry)
+        return entry
+
+    def get_feedback_entries(
+        self,
+        doctor_filter: str = "All",
+        min_rating: int = 1,
+        recent_days: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Return feedback entries with optional filtering."""
+        entries = list(self.feedback_entries)
+
+        if doctor_filter != "All":
+            entries = [entry for entry in entries if entry["doctor"] == doctor_filter]
+
+        entries = [entry for entry in entries if entry["rating"] >= min_rating]
+
+        if recent_days is not None:
+            threshold = datetime.now() - timedelta(days=recent_days)
+            entries = [
+                entry
+                for entry in entries
+                if datetime.strptime(entry["created_at"], "%Y-%m-%d %H:%M:%S") >= threshold
+            ]
+
+        return sorted(entries, key=lambda entry: entry["created_at"], reverse=True)
+
+    def get_feedback_summary(self, doctor_filter: str = "All") -> Dict[str, Any]:
+        """Get aggregate metrics for patient feedback."""
+        entries = self.get_feedback_entries(doctor_filter=doctor_filter)
+        total = len(entries)
+        if total == 0:
+            return {
+                "total_feedback": 0,
+                "avg_rating": 0.0,
+                "avg_communication": 0.0,
+                "avg_wait_time": 0.0,
+                "recommend_percent": 0.0,
+                "low_ratings": 0,
+            }
+
+        recommend_count = len([entry for entry in entries if entry["recommend"]])
+        low_ratings = len([entry for entry in entries if entry["rating"] <= 2])
+
+        return {
+            "total_feedback": total,
+            "avg_rating": round(sum(entry["rating"] for entry in entries) / total, 2),
+            "avg_communication": round(sum(entry["communication"] for entry in entries) / total, 2),
+            "avg_wait_time": round(sum(entry["wait_time"] for entry in entries) / total, 2),
+            "recommend_percent": round((recommend_count / total) * 100, 1),
+            "low_ratings": low_ratings,
+        }
+
+    def get_feedback_rating_distribution(self, doctor_filter: str = "All") -> Dict[str, int]:
+        """Get count of feedback entries by star rating."""
+        entries = self.get_feedback_entries(doctor_filter=doctor_filter)
+        distribution = {str(star): 0 for star in range(1, 6)}
+        for entry in entries:
+            distribution[str(entry["rating"])] += 1
+        return distribution
+
+    def get_feedback_trends(self, doctor_filter: str = "All", days: int = 14) -> pd.DataFrame:
+        """Get daily feedback trend (count and average rating)."""
+        entries = self.get_feedback_entries(doctor_filter=doctor_filter)
+        if not entries:
+            dates = pd.date_range(end=datetime.now(), periods=days, freq="D")
+            return pd.DataFrame({"Date": dates, "Count": [0] * days, "Avg Rating": [0.0] * days})
+
+        df = pd.DataFrame(entries)
+        df["created_at"] = pd.to_datetime(df["created_at"])
+        df["Date"] = df["created_at"].dt.date
+
+        grouped = (
+            df.groupby("Date")
+            .agg(Count=("id", "count"), **{"Avg Rating": ("rating", "mean")})
+            .reset_index()
+        )
+        grouped["Date"] = pd.to_datetime(grouped["Date"])
+
+        date_index = pd.date_range(end=datetime.now(), periods=days, freq="D")
+        full = pd.DataFrame({"Date": date_index})
+        merged = full.merge(grouped, on="Date", how="left").fillna({"Count": 0, "Avg Rating": 0.0})
+        merged["Count"] = merged["Count"].astype(int)
+        merged["Avg Rating"] = merged["Avg Rating"].round(2)
+        return merged
 
     def get_dashboard_metrics(self) -> Dict[str, Any]:
         """Get dashboard overview metrics"""
