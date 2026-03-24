@@ -77,7 +77,7 @@ python run_dashboard.py
 
 Default dashboard URL:
 
-- http://localhost:8501
+- http://127.0.0.1:8501
 
 If you run `streamlit run app.py` directly, start the FastAPI backend separately first with `uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000`.
 
@@ -103,8 +103,8 @@ python -m backend.sim_data
 
 ### 4) API documentation
 
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- Swagger UI: http://127.0.0.1:8000/docs
+- ReDoc: http://127.0.0.1:8000/redoc
 
 ## Core Endpoints
 

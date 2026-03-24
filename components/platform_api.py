@@ -12,6 +12,7 @@ import httpx
 API_BASE_URL = os.getenv("BIOSYNC_API_URL", "http://127.0.0.1:8000").rstrip("/")
 REQUEST_TIMEOUT = float(os.getenv("BIOSYNC_API_TIMEOUT", "8"))
 EXPECTED_BACKEND_SERVICE = "BioSync Tele-Rescue Backend"
+REQUIRED_AUTH_PATHS = {"/auth/login", "/auth/register"}
 
 
 class BackendUnavailable(RuntimeError):
@@ -26,8 +27,9 @@ class ApiError(RuntimeError):
         self.status_code = status_code
 
 
-def _is_expected_backend() -> bool:
+def _supports_auth_backend() -> bool:
     health_url = f"{API_BASE_URL}/health"
+    openapi_url = f"{API_BASE_URL}/openapi.json"
     timeout = min(REQUEST_TIMEOUT, 3.0)
 
     try:
@@ -44,7 +46,25 @@ def _is_expected_backend() -> bool:
     except ValueError:
         return False
 
-    return payload.get("service") == EXPECTED_BACKEND_SERVICE
+    if payload.get("service") != EXPECTED_BACKEND_SERVICE:
+        return False
+
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            response = client.get(openapi_url)
+    except httpx.RequestError:
+        return False
+
+    if response.is_error:
+        return False
+
+    try:
+        payload = response.json()
+    except ValueError:
+        return False
+
+    available_paths = set(payload.get("paths", {}))
+    return REQUIRED_AUTH_PATHS.issubset(available_paths)
 
 
 def _request(
@@ -65,10 +85,11 @@ def _request(
 
     if response.is_error:
         if response.status_code == 404 and path.startswith("/auth/"):
-            if not _is_expected_backend():
+            if not _supports_auth_backend():
                 raise BackendUnavailable(
-                    f"Authentication backend not found at {API_BASE_URL}. "
-                    "Start this project with `bash start.sh` or set `BIOSYNC_API_URL` to the BioSync API."
+                    f"Incompatible or stale backend detected at {API_BASE_URL}. "
+                    "Stop anything using port 8000, then start this project with `bash start.sh` "
+                    "or `python run_dashboard.py`."
                 )
             raise ApiError(
                 f"BioSync backend is running at {API_BASE_URL}, but the auth route `{path}` is missing. "

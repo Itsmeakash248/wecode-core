@@ -5,6 +5,7 @@ Starts the FastAPI backend and Streamlit frontend together.
 """
 from __future__ import annotations
 
+import json
 import signal
 import subprocess
 import sys
@@ -15,7 +16,10 @@ from urllib.request import urlopen
 
 
 REPO_ROOT = Path(__file__).resolve().parent
-BACKEND_URL = "http://127.0.0.1:8000/health"
+BACKEND_HEALTH_URL = "http://127.0.0.1:8000/health"
+BACKEND_OPENAPI_URL = "http://127.0.0.1:8000/openapi.json"
+EXPECTED_BACKEND_SERVICE = "BioSync Tele-Rescue Backend"
+REQUIRED_BACKEND_PATHS = {"/auth/login", "/auth/register"}
 BACKEND_CMD = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
 FRONTEND_CMD = [
     sys.executable,
@@ -34,15 +38,56 @@ def install_dependencies() -> None:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], cwd=REPO_ROOT)
 
 
-def wait_for_backend(timeout_seconds: float = 20.0) -> None:
+def _load_json(url: str, timeout_seconds: float = 1.5) -> dict:
+    with urlopen(url, timeout=timeout_seconds) as response:
+        if response.status != 200:
+            raise RuntimeError(f"{url} returned HTTP {response.status}")
+        return json.load(response)
+
+
+def probe_backend() -> tuple[str, str]:
+    try:
+        health_payload = _load_json(BACKEND_HEALTH_URL)
+    except URLError:
+        return "absent", ""
+    except Exception as exc:
+        return "incompatible", f"Unable to read backend health endpoint: {exc}"
+
+    if health_payload.get("service") != EXPECTED_BACKEND_SERVICE:
+        return "incompatible", (
+            f"Unexpected service is listening on 127.0.0.1:8000: {health_payload!r}"
+        )
+
+    try:
+        openapi_payload = _load_json(BACKEND_OPENAPI_URL)
+    except Exception as exc:
+        return "incompatible", f"Unable to read backend OpenAPI schema: {exc}"
+
+    available_paths = set(openapi_payload.get("paths", {}))
+    missing_paths = sorted(REQUIRED_BACKEND_PATHS - available_paths)
+    if missing_paths:
+        return "incompatible", (
+            "Existing backend is missing required auth routes: "
+            + ", ".join(missing_paths)
+        )
+
+    return "ready", ""
+
+
+def wait_for_backend(
+    timeout_seconds: float = 20.0,
+    process: subprocess.Popen | None = None,
+) -> None:
     deadline = time.time() + timeout_seconds
     while time.time() < deadline:
-        try:
-            with urlopen(BACKEND_URL, timeout=1.5) as response:
-                if response.status == 200:
-                    return
-        except URLError:
-            time.sleep(0.5)
+        status, detail = probe_backend()
+        if status == "ready":
+            return
+        if status == "incompatible":
+            raise RuntimeError(detail)
+        if process is not None and process.poll() is not None:
+            raise RuntimeError("FastAPI backend process exited before becoming ready.")
+        time.sleep(0.5)
     raise RuntimeError("FastAPI backend did not become healthy in time.")
 
 
@@ -85,16 +130,25 @@ def main() -> int:
     signal.signal(signal.SIGTERM, handle_signal)
 
     try:
-        print("Starting FastAPI backend on http://localhost:8000 ...")
-        backend_process = subprocess.Popen(BACKEND_CMD, cwd=REPO_ROOT)
-        wait_for_backend()
+        backend_status, backend_detail = probe_backend()
+        if backend_status == "ready":
+            print("Using existing FastAPI backend on http://127.0.0.1:8000 ...")
+        elif backend_status == "incompatible":
+            raise RuntimeError(
+                backend_detail
+                + " Stop the process using port 8000 or start this repository with `bash start.sh`."
+            )
+        else:
+            print("Starting FastAPI backend on http://127.0.0.1:8000 ...")
+            backend_process = subprocess.Popen(BACKEND_CMD, cwd=REPO_ROOT)
+            wait_for_backend(process=backend_process)
 
-        print("Starting Streamlit dashboard on http://localhost:8501 ...")
+        print("Starting Streamlit dashboard on http://127.0.0.1:8501 ...")
         print("Press Ctrl+C to stop both services.")
         frontend_process = subprocess.Popen(FRONTEND_CMD, cwd=REPO_ROOT)
 
         while True:
-            if backend_process.poll() is not None:
+            if backend_process is not None and backend_process.poll() is not None:
                 raise RuntimeError("Backend process exited unexpectedly.")
             if frontend_process.poll() is not None:
                 raise RuntimeError("Streamlit process exited unexpectedly.")

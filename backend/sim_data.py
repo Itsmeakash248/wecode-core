@@ -15,7 +15,7 @@ import random
 import httpx
 from datetime import datetime, timezone
 
-API_URL = "http://localhost:8000/vitals"
+API_URL = "http://127.0.0.1:8000/vitals"
 INTERVAL = 1.0   # seconds between readings
 NORMAL_READINGS = 10
 

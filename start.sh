@@ -72,7 +72,7 @@ if [ "$BACKEND_READY" -ne 1 ]; then
 fi
 
 # ── 6. Start Streamlit frontend ──────────────────────────────
-echo "🖥️  Starting Streamlit dashboard on http://localhost:8501 ..."
+echo "🖥️  Starting Streamlit dashboard on http://127.0.0.1:8501 ..."
 "$VENV/bin/streamlit" run "$REPO_DIR/app.py" \
   --server.port 8501 \
   --server.headless true \
