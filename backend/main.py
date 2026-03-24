@@ -369,6 +369,17 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "BioSync Tele-Rescue Backend"}
 
 
+@app.get("/", tags=["Meta"])
+def root() -> dict[str, str]:
+    return {
+        "service": "BioSync Tele-Rescue Backend",
+        "status": "ok",
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "health": "/health",
+    }
+
+
 @app.post("/auth/login", response_model=AuthResponse, tags=["Auth"])
 def login(request: LoginRequest) -> AuthResponse:
     try:
