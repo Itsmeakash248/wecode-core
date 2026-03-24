@@ -8,7 +8,7 @@
       "rating": 5.0,
       "experience": 12,
       "avatar_url": null,
-      "current_appointment_id": null
+      "current_appointment_id": "8dfa437e"
     },
     {
       "id": "d2",
@@ -243,6 +243,66 @@
       "created_at": "2026-03-24T09:39:29.620238+00:00",
       "updated_at": "2026-03-24T09:39:29.620238+00:00",
       "reminder_sent": true
+    },
+    "8dfa437e": {
+      "patient_name": "John Doe",
+      "patient_id": "p1",
+      "doctor_id": "d1",
+      "symptoms": "hi",
+      "scheduled_time": "2026-03-23T19:15:00+00:00",
+      "consultation_type": "Consultation",
+      "appointment_id": "8dfa437e",
+      "doctor_name": "Dr. Priya Sharma",
+      "consultation_room_id": "ROOM-8DFA437E",
+      "status": "in_progress",
+      "created_at": "2026-03-24T10:05:26.892271+00:00",
+      "updated_at": "2026-03-24T10:06:43.030534+00:00",
+      "reminder_sent": false
+    },
+    "f7a8c07c": {
+      "patient_name": "John Doe",
+      "patient_id": "p1",
+      "doctor_id": "d1",
+      "symptoms": "hi",
+      "scheduled_time": "2026-03-26T19:15:00+00:00",
+      "consultation_type": "Consultation",
+      "appointment_id": "f7a8c07c",
+      "doctor_name": "Dr. Priya Sharma",
+      "consultation_room_id": "ROOM-F7A8C07C",
+      "status": "confirmed",
+      "created_at": "2026-03-24T10:05:36.315766+00:00",
+      "updated_at": "2026-03-24T10:05:36.315766+00:00",
+      "reminder_sent": false
+    },
+    "84fe8dc8": {
+      "patient_name": "John Doe",
+      "patient_id": "p1",
+      "doctor_id": "d1",
+      "symptoms": "high fever",
+      "scheduled_time": "2026-03-27T10:26:00+00:00",
+      "consultation_type": "Consultation",
+      "appointment_id": "84fe8dc8",
+      "doctor_name": "Dr. Priya Sharma",
+      "consultation_room_id": "ROOM-84FE8DC8",
+      "status": "confirmed",
+      "created_at": "2026-03-24T10:06:18.148132+00:00",
+      "updated_at": "2026-03-24T10:06:18.148132+00:00",
+      "reminder_sent": false
+    },
+    "20854432": {
+      "patient_name": "John Doe",
+      "patient_id": "p1",
+      "doctor_id": "d1",
+      "symptoms": "high fever",
+      "scheduled_time": "2026-03-28T10:26:00+00:00",
+      "consultation_type": "Consultation",
+      "appointment_id": "20854432",
+      "doctor_name": "Dr. Priya Sharma",
+      "consultation_room_id": "ROOM-20854432",
+      "status": "confirmed",
+      "created_at": "2026-03-24T10:06:35.465790+00:00",
+      "updated_at": "2026-03-24T10:06:35.465790+00:00",
+      "reminder_sent": false
     }
   },
   "notifications": {
@@ -282,6 +342,51 @@
         "read": true,
         "created_at": "2026-03-24T08:43:33.549400+00:00",
         "appointment_id": "0589a51d"
+      },
+      {
+        "notification_id": "db0826e0",
+        "recipient_id": "p1",
+        "message": "Appointment confirmed with Dr. Priya Sharma for 2026-03-23T19:15:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:05:26.892329+00:00",
+        "appointment_id": "8dfa437e"
+      },
+      {
+        "notification_id": "602cda2a",
+        "recipient_id": "p1",
+        "message": "Appointment confirmed with Dr. Priya Sharma for 2026-03-26T19:15:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:05:36.315796+00:00",
+        "appointment_id": "f7a8c07c"
+      },
+      {
+        "notification_id": "80ed406d",
+        "recipient_id": "p1",
+        "message": "Appointment confirmed with Dr. Priya Sharma for 2026-03-27T10:26:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:06:18.148164+00:00",
+        "appointment_id": "84fe8dc8"
+      },
+      {
+        "notification_id": "1a62c78d",
+        "recipient_id": "p1",
+        "message": "Appointment confirmed with Dr. Priya Sharma for 2026-03-28T10:26:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:06:35.465828+00:00",
+        "appointment_id": "20854432"
+      },
+      {
+        "notification_id": "252c7b01",
+        "recipient_id": "p1",
+        "message": "Consultation for appointment 8dfa437e is now live. Join room ROOM-8DFA437E.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:06:43.030473+00:00",
+        "appointment_id": "8dfa437e"
       }
     ],
     "d1": [
@@ -329,6 +434,42 @@
         "read": false,
         "created_at": "2026-03-24T09:39:29.829893+00:00",
         "appointment_id": "f417c9c7"
+      },
+      {
+        "notification_id": "86d4a1c5",
+        "recipient_id": "d1",
+        "message": "New consultation appointment with John Doe at 2026-03-23T19:15:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:05:26.892358+00:00",
+        "appointment_id": "8dfa437e"
+      },
+      {
+        "notification_id": "49d68d3c",
+        "recipient_id": "d1",
+        "message": "New consultation appointment with John Doe at 2026-03-26T19:15:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:05:36.315815+00:00",
+        "appointment_id": "f7a8c07c"
+      },
+      {
+        "notification_id": "db20a358",
+        "recipient_id": "d1",
+        "message": "New consultation appointment with John Doe at 2026-03-27T10:26:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:06:18.148184+00:00",
+        "appointment_id": "84fe8dc8"
+      },
+      {
+        "notification_id": "626caa4f",
+        "recipient_id": "d1",
+        "message": "New consultation appointment with John Doe at 2026-03-28T10:26:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T10:06:35.465853+00:00",
+        "appointment_id": "20854432"
       }
     ],
     "p5b59e7": [

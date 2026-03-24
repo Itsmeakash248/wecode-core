@@ -38,6 +38,7 @@ BioSync Tele-Rescue is a healthcare platform prototype built for rapid teleconsu
   - Appointment booking and retrieval
   - Notifications and feedback
 - WebSocket broadcast channel for live updates
+- Room-based WebRTC consultation page with video, audio, and chat
 - Simulated vitals stream generator for testing and demos
 
 ## Tech Stack
@@ -78,6 +79,8 @@ python run_dashboard.py
 Default dashboard URL:
 
 - http://127.0.0.1:8501
+
+Video consultations open from the dashboard into a dedicated backend-hosted page at `http://127.0.0.1:8000/consultations/...` so browser camera and microphone permissions work reliably.
 
 If you run `streamlit run app.py` directly, start the FastAPI backend separately first with `uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000`.
 
@@ -156,6 +159,11 @@ python test_components.py
 ## Notes
 
 - This repository currently uses in-memory backend stores for appointments, notifications, and feedback.
+- Consultation access links are signed with `BIOSYNC_CONSULTATION_SECRET`. Set this in production instead of relying on the built-in development default.
+- For reliable calls across hospital, carrier, and corporate networks, configure TURN:
+  - `BIOSYNC_TURN_URL`
+  - `BIOSYNC_TURN_USERNAME`
+  - `BIOSYNC_TURN_PASSWORD`
 - For production deployment, replace in-memory storage with a persistent datastore and tighten CORS, auth, and observability controls.
 
 ## License

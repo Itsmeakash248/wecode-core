@@ -36,6 +36,7 @@ FRONTEND_CMD = [
 
 def install_dependencies() -> None:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], cwd=REPO_ROOT)
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "backend/requirements.txt"], cwd=REPO_ROOT)
 
 
 def _load_json(url: str, timeout_seconds: float = 1.5) -> dict:

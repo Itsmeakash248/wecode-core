@@ -324,6 +324,12 @@ class ClinicStore:
             raise KeyError("Appointment not found")
         return appointment
 
+    def _get_appointment_by_room_locked(self, room_id: str) -> dict[str, Any]:
+        for appointment in self.state["appointments"].values():
+            if appointment.get("consultation_room_id") == room_id:
+                return appointment
+        raise KeyError("Consultation room not found")
+
     def _add_notification_locked(
         self,
         uid: str,
@@ -557,6 +563,36 @@ class ClinicStore:
         with self.lock:
             self.generate_due_reminders_locked()
             return Appointment(**self._get_appointment_record(appointment_id))
+
+    def get_consultation_access_context(self, room_id: str, participant_id: str, role: str) -> dict[str, str]:
+        normalized_role = role.strip().lower()
+        with self.lock:
+            appointment = self._get_appointment_by_room_locked(room_id)
+            if appointment["status"] not in {"confirmed", "in_progress"}:
+                raise ValueError("Consultation room is not currently active.")
+
+            if normalized_role == "patient":
+                if appointment["patient_id"] != participant_id:
+                    raise ValueError("Patient does not belong to this consultation room.")
+                participant_name = appointment["patient_name"]
+            elif normalized_role == "doctor":
+                if appointment["doctor_id"] != participant_id:
+                    raise ValueError("Doctor does not belong to this consultation room.")
+                participant_name = appointment["doctor_name"]
+            else:
+                raise ValueError("Unsupported participant role.")
+
+            return {
+                "appointment_id": appointment["appointment_id"],
+                "consultation_room_id": appointment["consultation_room_id"],
+                "participant_id": participant_id,
+                "participant_name": participant_name,
+                "role": normalized_role,
+                "doctor_id": appointment["doctor_id"],
+                "doctor_name": appointment["doctor_name"],
+                "patient_id": appointment["patient_id"],
+                "patient_name": appointment["patient_name"],
+            }
 
     def update_appointment(self, appointment_id: str, updates: AppointmentUpdateRequest) -> Appointment:
         with self.lock:

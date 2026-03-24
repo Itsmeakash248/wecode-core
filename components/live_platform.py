@@ -468,6 +468,9 @@ def render_patient_dashboard(auth_user: Optional[dict[str, Any]] = None) -> None
             role="Patient",
             default_room_id=active_appointment["consultation_room_id"],
             section_title=f"Live Consultation with {active_appointment['doctor_name']}",
+            participant_id=patient["id"],
+            participant_name=patient["name"],
+            appointment_id=active_appointment["appointment_id"],
         )
 
     st.markdown("---")
@@ -663,7 +666,7 @@ def _render_doctor_appointments(doctor: dict[str, Any], appointments: list[dict[
                             st.rerun()
 
 
-def _render_doctor_consultation(appointments: list[dict[str, Any]]) -> None:
+def _render_doctor_consultation(doctor: dict[str, Any], appointments: list[dict[str, Any]]) -> None:
     st.markdown("### Consultation Center")
     active_options = [item for item in appointments if item["status"] in {"confirmed", "in_progress"}]
     if not active_options:
@@ -699,6 +702,9 @@ def _render_doctor_consultation(appointments: list[dict[str, Any]]) -> None:
         role="Doctor",
         default_room_id=selected["consultation_room_id"],
         section_title=f"Consultation with {selected['patient_name']}",
+        participant_id=doctor["id"],
+        participant_name=doctor["name"],
+        appointment_id=selected["appointment_id"],
     )
 
 
@@ -815,7 +821,7 @@ def render_doctor_dashboard(auth_user: Optional[dict[str, Any]] = None) -> None:
     elif nav == "Appointments":
         _render_doctor_appointments(doctor, appointments)
     elif nav == "Consultation":
-        _render_doctor_consultation(appointments)
+        _render_doctor_consultation(doctor, appointments)
     elif nav == "Notifications":
         _render_notification_list(doctor["id"], "Notifications & Reminders", f"doctor_notifications_{doctor['id']}")
     elif nav == "Feedback":

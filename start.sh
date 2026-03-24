@@ -21,6 +21,7 @@ PIP="$VENV/bin/pip"
 # ── 2. Install all dependencies ─────────────────────────────
 echo "📥 Installing dependencies..."
 $PIP install -q -r "$REPO_DIR/requirements.txt"
+$PIP install -q -r "$REPO_DIR/backend/requirements.txt"
 
 # ── 3. Cleanup function (Ctrl+C kills both processes) ────────
 BACKEND_PID=""
