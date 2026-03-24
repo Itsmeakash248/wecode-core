@@ -17,18 +17,29 @@ from urllib.request import urlopen
 
 
 REPO_ROOT = Path(__file__).resolve().parent
+VENV_DIR = REPO_ROOT / ".venv"
 BACKEND_HEALTH_URL = "http://127.0.0.1:8000/health"
 BACKEND_OPENAPI_URL = "http://127.0.0.1:8000/openapi.json"
 EXPECTED_BACKEND_SERVICE = "BioSync Tele-Rescue Backend"
 REQUIRED_BACKEND_PATHS = {"/auth/login", "/auth/register"}
-BACKEND_CMD = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
 DEFAULT_DASHBOARD_PORT = 8501
 MAX_DASHBOARD_PORT = 8510
 
 
+def _venv_python() -> str:
+    """Return the path to the venv Python executable, creating the venv if needed."""
+    venv_python = VENV_DIR / "bin" / "python"
+    if not venv_python.exists():
+        print(f"Creating virtual environment at {VENV_DIR} ...")
+        subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)])
+    return str(venv_python)
+
+
 def install_dependencies() -> None:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], cwd=REPO_ROOT)
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "backend/requirements.txt"], cwd=REPO_ROOT)
+    python = _venv_python()
+    subprocess.check_call([python, "-m", "pip", "install", "--upgrade", "pip"], cwd=REPO_ROOT)
+    subprocess.check_call([python, "-m", "pip", "install", "-r", "requirements.txt"], cwd=REPO_ROOT)
+    subprocess.check_call([python, "-m", "pip", "install", "-r", "backend/requirements.txt"], cwd=REPO_ROOT)
 
 
 def _is_port_free(port: int) -> bool:
@@ -46,9 +57,15 @@ def _pick_dashboard_port() -> int:
     )
 
 
+def _build_backend_cmd() -> list[str]:
+    python = _venv_python()
+    return [python, "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
 def _build_frontend_cmd(port: int) -> list[str]:
+    python = _venv_python()
     return [
-        sys.executable,
+        python,
         "-m",
         "streamlit",
         "run",
@@ -162,7 +179,7 @@ def main() -> int:
             )
         else:
             print("Starting FastAPI backend on http://127.0.0.1:8000 ...")
-            backend_process = subprocess.Popen(BACKEND_CMD, cwd=REPO_ROOT)
+            backend_process = subprocess.Popen(_build_backend_cmd(), cwd=REPO_ROOT)
             wait_for_backend(process=backend_process)
 
         dashboard_port = _pick_dashboard_port()
