@@ -1,0 +1,8 @@
+# Frontend-only dependencies (Streamlit dashboard)
+# Backend ML packages are NOT included — they run in the separate biosync-backend service
+streamlit
+pandas
+plotly
+httpx
+python-dotenv
+requests
