@@ -61,6 +61,22 @@ class DataManager:
             'total_doctors': len(self.doctors)
         }
 
+    def get_doctor_listing(self, status_filter: str = "All") -> List[Dict[str, Any]]:
+        """Get doctor listing optionally filtered by availability status."""
+        if status_filter == "All":
+            status_order = {"Available": 0, "Busy": 1, "Offline": 2}
+            return sorted(self.doctors, key=lambda d: (status_order.get(d['status'], 99), d['name']))
+        return [doctor for doctor in self.doctors if doctor['status'] == status_filter]
+
+    def get_doctor_availability_counts(self) -> Dict[str, int]:
+        """Get doctor count summary for each availability state."""
+        return {
+            'available': len([doctor for doctor in self.doctors if doctor['status'] == 'Available']),
+            'busy': len([doctor for doctor in self.doctors if doctor['status'] == 'Busy']),
+            'offline': len([doctor for doctor in self.doctors if doctor['status'] == 'Offline']),
+            'total': len(self.doctors)
+        }
+
     def get_vitals_data(self) -> Dict[str, Any]:
         """Generate real-time vitals data"""
         return {

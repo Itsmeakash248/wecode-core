@@ -191,6 +191,82 @@ class UIComponents:
             border-color: var(--primary-blue-light);
         }
 
+        .doctor-item {
+            background: linear-gradient(135deg, white 0%, var(--neutral-gray-50) 100%);
+            border: 1px solid var(--neutral-gray-200);
+            border-left: 5px solid var(--primary-blue);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 8px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            transition: all 0.25s ease;
+        }
+
+        .doctor-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        }
+
+        .doctor-item.compact {
+            padding: 10px 12px;
+            margin: 6px 0;
+        }
+
+        .doctor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doctor-name {
+            font-weight: 700;
+            color: var(--neutral-gray-800);
+            margin: 0;
+            font-size: 0.98em;
+        }
+
+        .doctor-specialty {
+            color: var(--neutral-gray-600);
+            font-size: 0.85em;
+            margin-top: 2px;
+        }
+
+        .doctor-meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            color: var(--neutral-gray-600);
+            font-size: 0.82em;
+        }
+
+        .availability-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.78em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .availability-available {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+        }
+
+        .availability-busy {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+        }
+
+        .availability-offline {
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+            color: #374151;
+        }
+
         .status-badge {
             padding: 6px 14px;
             border-radius: 20px;
@@ -713,6 +789,45 @@ class UIComponents:
                 </div>
                 <button style="background: #4A90E2; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em; transition: all 0.2s ease;" onmouseover="this.style.background='#357ABD'" onmouseout="this.style.background='#4A90E2'">Join Call</button>
             </div>
+        </div>
+        """
+        st.markdown(html, unsafe_allow_html=True)
+
+    @staticmethod
+    def create_doctor_availability_item(
+        name: str,
+        specialty: str,
+        status: str,
+        rating: float,
+        experience: int,
+        compact: bool = False
+    ):
+        """Create a doctor listing item with live availability status."""
+        status_class = {
+            "Available": "availability-available",
+            "Busy": "availability-busy",
+            "Offline": "availability-offline"
+        }.get(status, "availability-offline")
+
+        status_dot = {
+            "Available": "🟢",
+            "Busy": "🟠",
+            "Offline": "⚪"
+        }.get(status, "⚪")
+
+        compact_class = "compact" if compact else ""
+        meta_html = "" if compact else f"<div class='doctor-meta'><span>⭐ {rating}</span><span>🧠 {experience} yrs</span></div>"
+
+        html = f"""
+        <div class="doctor-item {compact_class}">
+            <div class="doctor-header">
+                <div>
+                    <p class="doctor-name">{name}</p>
+                    <div class="doctor-specialty">{specialty}</div>
+                </div>
+                <span class="availability-badge {status_class}">{status_dot} {status}</span>
+            </div>
+            {meta_html}
         </div>
         """
         st.markdown(html, unsafe_allow_html=True)

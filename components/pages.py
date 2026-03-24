@@ -551,6 +551,10 @@ class DoctorDashboard:
         nav_options = ["📊 Dashboard", "📅 Appointments", "👥 Patients", "📈 Reports", "🚨 Emergency"]
         selected_nav = st.sidebar.radio("", nav_options, index=0, key="doctor_nav", label_visibility="collapsed")
 
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("### 👨‍⚕️ Available Doctors (Online)")
+        DoctorDashboard._render_doctor_availability_sidebar()
+
         # Dashboard Content
         if selected_nav == "📊 Dashboard":
             DoctorDashboard._render_main_dashboard()
@@ -578,10 +582,48 @@ class DoctorDashboard:
                 ui.create_metric_card("Total Consultations", str(metrics['total_consultations']), "↗️ +12% this month")
             with col2:
                 ui.create_metric_card("Active Patients", str(metrics['active_patients']), "↗️ +5% this week")
-        with col3:
-            ui.create_metric_card("Emergency Cases", str(metrics['emergency_cases']), "⚠️ Requires attention", "emergency")
-        with col4:
-            ui.create_metric_card("Today's Appointments", str(metrics['today_appointments']), "✅ All scheduled", "success")
+            with col3:
+                ui.create_metric_card("Emergency Cases", str(metrics['emergency_cases']), "⚠️ Requires attention", "emergency")
+            with col4:
+                ui.create_metric_card("Today's Appointments", str(metrics['today_appointments']), "✅ All scheduled", "success")
+
+            st.markdown("### 👨‍⚕️ Doctor Listing & Availability Status")
+            filter_col, stats_col = st.columns([2, 3])
+
+            with filter_col:
+                status_filter = st.selectbox(
+                    "Filter by Availability",
+                    ["All", "Available", "Busy", "Offline"],
+                    key="doctor_status_filter"
+                )
+
+            with stats_col:
+                counts = data_manager.get_doctor_availability_counts()
+                st.markdown(
+                    f"""
+                    <div style="padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 12px; background: #f8fafc; margin-top: 28px;">
+                        <strong>Summary:</strong>
+                        🟢 {counts['available']} Available &nbsp;|&nbsp;
+                        🟠 {counts['busy']} Busy &nbsp;|&nbsp;
+                        ⚪ {counts['offline']} Offline &nbsp;|&nbsp;
+                        👥 {counts['total']} Total
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            listed_doctors = data_manager.get_doctor_listing(status_filter)
+            if listed_doctors:
+                for doctor in listed_doctors:
+                    ui.create_doctor_availability_item(
+                        name=doctor['name'],
+                        specialty=doctor['specialty'],
+                        status=doctor['status'],
+                        rating=doctor['rating'],
+                        experience=doctor['experience']
+                    )
+            else:
+                st.info("No doctors found for the selected availability filter.")
 
         # Charts Section
         st.markdown("### 📊 Analytics")
@@ -790,6 +832,28 @@ class DoctorDashboard:
         # Right Side Metrics Panel
         with metrics_col:
             DoctorDashboard._render_current_metrics_sidebar()
+
+    @staticmethod
+    def _render_doctor_availability_sidebar():
+        """Render compact doctor availability list in the sidebar."""
+        online_doctors = data_manager.get_doctor_listing("Available")
+        st.sidebar.caption(f"Online now: {len(online_doctors)}")
+
+        if not online_doctors:
+            st.sidebar.info("No doctors online right now")
+            return
+
+        with st.sidebar:
+            for doctor in online_doctors:
+                ui.create_doctor_availability_item(
+                    name=doctor['name'],
+                    specialty=doctor['specialty'],
+                    status=doctor['status'],
+                    rating=doctor['rating'],
+                    experience=doctor['experience'],
+                    compact=True
+                )
+
     def _render_appointments():
         """Render appointments management"""
         st.markdown("### 📅 Appointments Management")
