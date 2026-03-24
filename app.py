@@ -64,6 +64,7 @@ def _logout() -> None:
 
 def _render_sidebar(auth_user):
     st.sidebar.title("🚑 BioSync Tele-Rescue")
+    st.sidebar.image("animation.gif", use_container_width=True)
     st.sidebar.markdown("---")
 
     if auth_user:

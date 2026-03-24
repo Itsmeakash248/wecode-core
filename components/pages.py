@@ -205,6 +205,9 @@ class LandingPage:
 
         # Hero Section
         st.markdown('<div class="hero-section">', unsafe_allow_html=True)
+        col_l, col_m, col_r = st.columns([1, 1, 1])
+        with col_m:
+            st.image("animation.gif", width=160)
         st.markdown('<h1 class="hero-title">🚑 BioSync Tele-Rescue</h1>', unsafe_allow_html=True)
         st.markdown('<p class="hero-subtitle">Autonomous Edge-AI Teleconsultation Platform</p>', unsafe_allow_html=True)
         st.markdown('<p style="font-size: 1.1em; opacity: 0.9;">Revolutionizing emergency healthcare by automatically connecting patients to doctors during critical moments through advanced AI-powered wearables.</p>', unsafe_allow_html=True)

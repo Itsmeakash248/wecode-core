@@ -1,6 +1,6 @@
 <p align="center">
   <a href="animation.mp4">
-    <img src="animation.gif" width="386" alt="Animated BioSync Tele-Rescue logo" />
+    <img src="animation.gif" width="193" alt="Animated BioSync Tele-Rescue logo" />
   </a>
 </p>
 
