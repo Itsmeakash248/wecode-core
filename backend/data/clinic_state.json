@@ -91,6 +91,14 @@
       "condition": "COPD",
       "last_visit": "2026-03-09T08:45:00+00:00",
       "risk_level": "High"
+    },
+    {
+      "id": "p5b59e7",
+      "name": "temp",
+      "age": 30,
+      "condition": "temp",
+      "last_visit": null,
+      "risk_level": "Low"
     }
   ],
   "users": {
@@ -193,6 +201,16 @@
       "password_salt": "a1a00f6ca567a6494e9e8993c9651b0f",
       "password_hash": "2b27143cd66b6f143de15fdffc5913ee3f7a0b9806491cef7cbe097d6c517830",
       "created_at": "2026-03-24T08:53:32.039714+00:00"
+    },
+    "6ddc5cd0": {
+      "id": "6ddc5cd0",
+      "email": "temp@gmail.com",
+      "full_name": "temp",
+      "role": "patient",
+      "linked_profile_id": "p5b59e7",
+      "password_salt": "2bd7f273ea4f21f398387c7c5c99d920",
+      "password_hash": "2cdc63737eb11058af49812791e96341f1ef78354072fa9d3d1978ba0d99ca16",
+      "created_at": "2026-03-24T09:37:22.729847+00:00"
     }
   },
   "appointments": {
@@ -209,6 +227,21 @@
       "status": "completed",
       "created_at": "2026-03-24T08:40:35.329716+00:00",
       "updated_at": "2026-03-24T08:43:33.549441+00:00",
+      "reminder_sent": true
+    },
+    "f417c9c7": {
+      "patient_name": "temp",
+      "patient_id": "p5b59e7",
+      "doctor_id": "d1",
+      "symptoms": "hu",
+      "scheduled_time": "2026-03-24T09:59:00+00:00",
+      "consultation_type": "Consultation",
+      "appointment_id": "f417c9c7",
+      "doctor_name": "Dr. Priya Sharma",
+      "consultation_room_id": "ROOM-F417C9C7",
+      "status": "confirmed",
+      "created_at": "2026-03-24T09:39:29.620238+00:00",
+      "updated_at": "2026-03-24T09:39:29.620238+00:00",
       "reminder_sent": true
     }
   },
@@ -278,6 +311,44 @@
         "read": false,
         "created_at": "2026-03-24T08:43:56.804054+00:00",
         "appointment_id": "0589a51d"
+      },
+      {
+        "notification_id": "724a078b",
+        "recipient_id": "d1",
+        "message": "New consultation appointment with temp at 2026-03-24T09:59:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T09:39:29.621419+00:00",
+        "appointment_id": "f417c9c7"
+      },
+      {
+        "notification_id": "67f78607",
+        "recipient_id": "d1",
+        "message": "Reminder: consultation with temp starts at 2026-03-24T09:59:00+00:00.",
+        "type": "reminder",
+        "read": false,
+        "created_at": "2026-03-24T09:39:29.829893+00:00",
+        "appointment_id": "f417c9c7"
+      }
+    ],
+    "p5b59e7": [
+      {
+        "notification_id": "6433a05e",
+        "recipient_id": "p5b59e7",
+        "message": "Appointment confirmed with Dr. Priya Sharma for 2026-03-24T09:59:00+00:00.",
+        "type": "appointment",
+        "read": false,
+        "created_at": "2026-03-24T09:39:29.620284+00:00",
+        "appointment_id": "f417c9c7"
+      },
+      {
+        "notification_id": "1770c99a",
+        "recipient_id": "p5b59e7",
+        "message": "Reminder: appointment f417c9c7 with Dr. Priya Sharma starts at 2026-03-24T09:59:00+00:00.",
+        "type": "reminder",
+        "read": false,
+        "created_at": "2026-03-24T09:39:29.829828+00:00",
+        "appointment_id": "f417c9c7"
       }
     ]
   },

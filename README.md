@@ -1,7 +1,7 @@
 <p align="center">
-  <video src="animation.mp4" width="386" autoplay loop muted playsinline>
-    <a href="animation.mp4">Animated logo</a>
-  </video>
+  <a href="animation.mp4">
+    <img src="animation.gif" width="386" alt="Animated BioSync Tele-Rescue logo" />
+  </a>
 </p>
 
 <h1 align="center">BioSync Tele-Rescue</h1>
