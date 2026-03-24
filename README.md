@@ -9,6 +9,7 @@ An autonomous edge-AI teleconsultation platform that revolutionizes emergency he
 - **Modular Architecture**: Clean separation of concerns with dedicated components
 - **Enhanced UI/UX**: Modern healthcare-focused design with improved animations
 - **Advanced Features**: Patient search, appointment management, emergency alerts
+- **Live Consultation**: WebRTC-based video/audio consultation with room chat
 - **Better Performance**: Optimized code structure and data management
 - **Professional Dashboard**: Comprehensive telemedicine interface
 
@@ -101,7 +102,7 @@ streamlit run app.py --server.port 8502 --server.headless true
 - **UI Components**: Reusable component library
 - **State Management**: Streamlit session state
 - **AI/ML**: Edge-AI for anomaly detection (planned)
-- **Communication**: WebRTC for video consultations (planned)
+- **Communication**: WebRTC consultations via streamlit-webrtc
 - **Backend**: FastAPI (planned)
 
 ### Project Structure

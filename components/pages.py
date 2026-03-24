@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 from .data_manager import data_manager
 from .ui_components import ui
+from .webrtc_consultation import consultation_module
 
 
 class LandingPage:
@@ -452,6 +453,7 @@ class PatientDashboard:
                 st.error("🚨 CRITICAL ALERT: Emergency signal sent!")
                 st.warning("Auto-dialing nearest available doctor...")
                 st.success("Emergency doctor connected! Video call initiated.")
+                st.session_state.active_consultation_room_patient = "ER-001"
 
                 # Mock video call with enhanced UI
                 st.markdown("### 📹 Emergency Video Call")
@@ -529,6 +531,13 @@ class PatientDashboard:
                 doctor=activity.get('doctor', '')
             )
 
+        st.markdown("---")
+        consultation_module.render(
+            role="Patient",
+            default_room_id=st.session_state.get("active_consultation_room_patient", "ER-001"),
+            section_title="Patient Consultation Room (WebRTC)"
+        )
+
 
 class DoctorDashboard:
     """Doctor dashboard component"""
@@ -548,7 +557,7 @@ class DoctorDashboard:
         """.format(datetime.now().strftime("%I:%M %p")), unsafe_allow_html=True)
 
         # Sidebar Navigation
-        nav_options = ["📊 Dashboard", "📅 Appointments", "👥 Patients", "📈 Reports", "🚨 Emergency"]
+        nav_options = ["📊 Dashboard", "📅 Appointments", "👥 Patients", "💬 Consultation", "📈 Reports", "🚨 Emergency"]
         selected_nav = st.sidebar.radio("", nav_options, index=0, key="doctor_nav", label_visibility="collapsed")
 
         st.sidebar.markdown("---")
@@ -562,6 +571,8 @@ class DoctorDashboard:
             DoctorDashboard._render_appointments()
         elif selected_nav == "👥 Patients":
             DoctorDashboard._render_patients()
+        elif selected_nav == "💬 Consultation":
+            DoctorDashboard._render_consultation()
         elif selected_nav == "📈 Reports":
             DoctorDashboard._render_reports()
         elif selected_nav == "🚨 Emergency":
@@ -925,6 +936,19 @@ class DoctorDashboard:
                             st.info(f"Opening medical records for {patient['name']}...")
         else:
             st.info("No patients found matching your search.")
+
+    @staticmethod
+    def _render_consultation():
+        """Render doctor consultation center with WebRTC and room chat."""
+        st.markdown("### 💬 Consultation Center")
+        st.caption("Use the same room ID as the patient to join the live teleconsultation.")
+
+        default_room = st.session_state.get("active_consultation_room_patient", "ER-001")
+        consultation_module.render(
+            role="Doctor",
+            default_room_id=default_room,
+            section_title="Doctor Consultation Room (WebRTC)"
+        )
 
     @staticmethod
     def _render_reports():
