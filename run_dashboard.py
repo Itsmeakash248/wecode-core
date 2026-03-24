@@ -6,6 +6,7 @@ Starts the FastAPI backend and Streamlit frontend together.
 from __future__ import annotations
 
 import json
+import socket
 import signal
 import subprocess
 import sys
@@ -21,22 +22,42 @@ BACKEND_OPENAPI_URL = "http://127.0.0.1:8000/openapi.json"
 EXPECTED_BACKEND_SERVICE = "BioSync Tele-Rescue Backend"
 REQUIRED_BACKEND_PATHS = {"/auth/login", "/auth/register"}
 BACKEND_CMD = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
-FRONTEND_CMD = [
-    sys.executable,
-    "-m",
-    "streamlit",
-    "run",
-    "app.py",
-    "--server.headless",
-    "true",
-    "--server.port",
-    "8501",
-]
+DEFAULT_DASHBOARD_PORT = 8501
+MAX_DASHBOARD_PORT = 8510
 
 
 def install_dependencies() -> None:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], cwd=REPO_ROOT)
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "backend/requirements.txt"], cwd=REPO_ROOT)
+
+
+def _is_port_free(port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(0.5)
+        return sock.connect_ex(("127.0.0.1", port)) != 0
+
+
+def _pick_dashboard_port() -> int:
+    for port in range(DEFAULT_DASHBOARD_PORT, MAX_DASHBOARD_PORT + 1):
+        if _is_port_free(port):
+            return port
+    raise RuntimeError(
+        f"No free dashboard port found in range {DEFAULT_DASHBOARD_PORT}-{MAX_DASHBOARD_PORT}."
+    )
+
+
+def _build_frontend_cmd(port: int) -> list[str]:
+    return [
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        "app.py",
+        "--server.headless",
+        "true",
+        "--server.port",
+        str(port),
+    ]
 
 
 def _load_json(url: str, timeout_seconds: float = 1.5) -> dict:
@@ -144,9 +165,15 @@ def main() -> int:
             backend_process = subprocess.Popen(BACKEND_CMD, cwd=REPO_ROOT)
             wait_for_backend(process=backend_process)
 
-        print("Starting Streamlit dashboard on http://127.0.0.1:8501 ...")
+        dashboard_port = _pick_dashboard_port()
+        if dashboard_port != DEFAULT_DASHBOARD_PORT:
+            print(
+                f"Port {DEFAULT_DASHBOARD_PORT} is busy, using dashboard port {dashboard_port} instead ..."
+            )
+
+        print(f"Starting Streamlit dashboard on http://127.0.0.1:{dashboard_port} ...")
         print("Press Ctrl+C to stop both services.")
-        frontend_process = subprocess.Popen(FRONTEND_CMD, cwd=REPO_ROOT)
+        frontend_process = subprocess.Popen(_build_frontend_cmd(dashboard_port), cwd=REPO_ROOT)
 
         while True:
             if backend_process is not None and backend_process.poll() is not None:
