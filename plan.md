@@ -1,69 +1,104 @@
-# 🚨 BIOSYNC AI: EMERGENCY PIVOT BATTLE PLAN 🚨
-**HackArena 2K26 • Healthcare Track • Team: We Code Together**
-**Current Time:** 11:00 AM | **Evaluation Starts:** 3:00 PM
-**Target Problem Statement:** Healthcare PS 1 (Doctor Availability & Teleconsultation Platform)
+# 🚨 BIOSYNC AI — EMERGENCY PIVOT BATTLE PLAN
+
+> **HackArena 2K26 · Healthcare Track · Team: We Code Together**
+> **Problem Statement:** Healthcare PS 1 — Doctor Availability & Teleconsultation Platform
+> **Current Time:** 11:00 AM · **Evaluation Begins:** 3:00 PM · **Time Budget:** 4 hours
 
 ---
 
-## 🎯 THE STRATEGIC PIVOT: "BioSync Tele-Rescue"
-**The Threat:** Our original "offline bystander CPR" idea does not match the official HackArena problem statements. We risk disqualification.
-**The Solution:** We are pivoting to **Healthcare PS 1**. 
-**The New Pitch:** *"Standard teleconsultation platforms require conscious patients to book appointments. We built an **Automated Emergency Teleconsultation Platform**. When our edge-AI wearable detects a critical drop in vitals (cardiac arrest/fall), it bypasses the booking process and instantly auto-dials the nearest available emergency doctor via WebRTC, streaming live patient vitals and AI-generated emergency context directly to the doctor's screen."*
+## 1 · The Strategic Pivot: "BioSync Tele-Rescue"
+
+| | |
+|---|---|
+| **Threat** | Our original "offline bystander CPR" idea does not align with any official HackArena problem statement — we risk disqualification. |
+| **Pivot Target** | Healthcare PS 1 — Doctor Availability & Teleconsultation Platform |
+| **Core Insight** | Every existing teleconsultation platform assumes the patient is conscious and able to book a call. That assumption fails catastrophically during cardiac events, falls, and seizures. |
+
+### The Elevator Pitch
+
+> *"When our edge-AI wearable detects a critical drop in vitals — cardiac arrest, a dangerous fall — it bypasses the booking process and instantly auto-dials the nearest available emergency doctor via WebRTC, streaming live patient vitals and an AI-generated triage brief directly to the doctor's screen."*
 
 ---
 
-## 🛠️ UPDATED ROLE DELEGATION (11:00 AM ONWARD)
+## 2 · Role Delegation (11:00 AM →)
 
-### 👨‍💻 Akash (Primary: Hardware, ML Core, Backend)
-*No changes to your core stack. Just change the data destination narrative.*
-*   **[11:00 AM - 12:30 PM] AI & Data Pipeline:** Finish the FastAPI ingestion and Scikit-Learn Isolation Forest integration. Ensure the sensor data (or `sim_data.py`) triggers the anomaly threshold cleanly.
-*   **[12:30 PM - 1:30 PM] Backend Socket:** Expose a WebSocket endpoint that simulates sending the live data to a remote "Doctor's Dashboard" rather than just a local bystander phone.
-*   **[1:30 PM - 2:30 PM] Integration:** Link the anomaly trigger to Shweta's updated UI. 
+### 👨‍💻 Akash — Hardware · ML Core · Backend
 
-### 👩‍💻 Shweta (Support: LLM, UI/UX, Narrative Pivot)
-*You are driving the UI pivot to match the "Teleconsultation" prompt.*
-*   **[11:00 AM - 12:00 PM] Ollama Prompt Update:** Change the LLM prompt. Instead of talking to a bystander, the AI is briefing a doctor. 
-    *   *New Prompt:* `SYSTEM: You are a medical triage AI. Given an anomaly alert, output a 2-sentence triage briefing for an incoming teleconsulting emergency doctor. Include suspected issue and immediate recommended intervention.`
-*   **[12:00 PM - 2:00 PM] UI Overhaul (Streamlit):** 
-    *   **View 1 (Patient View):** Normal vitals monitoring. 
-    *   **View 2 (Doctor Platform):** Add a sidebar showing "Available Doctors (Online)". 
-    *   **The SOS Trigger:** When an anomaly hits, screen turns red, displays "CRITICAL: Auto-Dialing Available Doctor..." and shows a mock WebRTC Video Placeholder (use a static image or a webcam feed iframe to simulate the teleconsultation).
-*   **[2:00 PM - 2:30 PM] Polish:** Ensure the UI clearly says "Teleconsultation Portal" to check the judges' rubric boxes.
+| Window | Deliverable | Exit Condition |
+|---|---|---|
+| 11:00 – 12:30 | **AI & Data Pipeline** — Finish FastAPI ingestion + Scikit-Learn Isolation Forest. Wire `sim_data.py` to trigger anomaly threshold cleanly. | Anomaly detection fires reliably on simulated vitals. |
+| 12:30 – 13:30 | **Backend WebSocket** — Expose a WS endpoint that pushes live data to the remote "Doctor's Dashboard" (not just a local screen). | Doctor dashboard receives real-time data over WebSocket. |
+| 13:30 – 14:30 | **Integration** — Connect the anomaly trigger → Shweta's updated UI. End-to-end run. | Full pipeline works without manual intervention. |
+
+### 👩‍💻 Shweta — LLM · UI/UX · Narrative Pivot
+
+| Window | Deliverable | Exit Condition |
+|---|---|---|
+| 11:00 – 12:00 | **Ollama Prompt Update** — Rewrite the LLM system prompt so the AI now briefs a *doctor*, not a bystander. | Prompt produces a clean 2-sentence doctor triage brief. |
+| 12:00 – 14:00 | **UI Overhaul (Streamlit)** — Build two views. | Both views render correctly with mock data. |
+| 14:00 – 14:30 | **Polish** — Ensure UI prominently labels itself "Teleconsultation Portal". | Judges' rubric keywords visible on every screen. |
+
+#### New LLM System Prompt
+
+```
+SYSTEM: You are a medical triage AI. Given an anomaly alert, output a 2-sentence
+triage briefing for an incoming teleconsulting emergency doctor. Include suspected
+issue and immediate recommended intervention.
+```
+
+#### Streamlit UI Spec
+
+| View | Contents |
+|---|---|
+| **Patient View** | Normal vitals monitoring dashboard. |
+| **Doctor Platform** | Sidebar: "Available Doctors (Online)" list. Main area: live vitals feed. |
+| **SOS Trigger** | Screen turns red → "CRITICAL: Auto-Dialing Available Doctor…" → Mock WebRTC video placeholder (static image or webcam iframe). |
 
 ---
 
-## ⏱️ REVISED COUNTDOWN TIMELINE
+## 3 · Countdown Timeline
 
 | Time | Phase | Action / Exit Condition |
-| :--- | :--- | :--- |
-| **11:00 - 12:30** | **Core Backend** | FastAPI receiving data; Isolation forest reliably triggering anomalies; Ollama outputting "Doctor Briefs". |
-| **12:30 - 14:00** | **UI/UX Pivot** | Streamlit dashboard built. Must include "Available Doctors" list and WebRTC video mock-up to satisfy the problem statement. |
-| **14:00 - 14:45** | **Integration** | End-to-End run. ESP32/Sim Data → Anomaly → Auto-dials Doctor UI → Shows LLM text + Fake Video feed. |
-| **14:45 - 15:00** | **Demo Prep** | **STOP CODING.** Clean the desk, open all tabs, prepare for the judges. |
-| **15:00 - 16:30** | **EVALUATION** | Pitch to Judges (See script below). |
-| **17:00 Onward** | **Code Freeze** | Prepare codebase for the Cross-Fire Debugging Hunt (Add clear comments to `sim_data.py` so others can run it without hardware). |
+|:---|:---|:---|
+| **11:00 – 12:30** | Core Backend | FastAPI receiving data · Isolation Forest triggering anomalies · Ollama outputting doctor briefs. |
+| **12:30 – 14:00** | UI/UX Pivot | Streamlit dashboard built. Must include "Available Doctors" list + WebRTC video mock. |
+| **14:00 – 14:45** | Integration | End-to-end: ESP32/Sim → Anomaly → Auto-dial Doctor UI → LLM text + Fake video feed. |
+| **14:45 – 15:00** | Demo Prep | **STOP CODING.** Clean desk · open all tabs · prepare for judges. |
+| **15:00 – 16:30** | Evaluation | Pitch to judges (see script below). |
+| **17:00 →** | Code Freeze | Prep codebase for Cross-Fire Debugging Hunt. Add clear comments to `sim_data.py`. |
 
 ---
 
-## 🎤 THE 3-MINUTE PITCH SCRIPT (Memorize This)
+## 4 · The 3-Minute Pitch Script
 
-**[0:00 - 0:30] The Hook & Problem:** 
-"We chose the Teleconsultation Platform problem statement. But we realized a fatal flaw in modern telehealth: it assumes the patient is conscious and able to book a call. What happens when a patient suffers a sudden cardiac event or a severe fall? They can't navigate a UI."
+### 🎙️ Act 1 — The Hook (0:00 – 0:30)
 
-**[0:30 - 1:15] The Solution (Start Normal Demo):** 
-"Meet BioSync Tele-Rescue. We built an autonomous edge-AI teleconsultation trigger. Right now, my vitals are streaming normally from this $6 ESP32 wearable. The platform shows nearby doctors are available, but idle."
+> "We chose the Teleconsultation Platform problem statement. But we found a fatal flaw in modern telehealth: **it assumes the patient is conscious and able to book a call.** What happens during a sudden cardiac event or a severe fall? They can't navigate a UI."
 
-**[1:15 - 2:00] The "Aha!" Moment (Trigger Emergency):** 
-"Watch what happens when I simulate a critical drop in SpO2 and a fall. *(Trigger anomaly)*. Our local Isolation Forest model detects the crash instantly. Instead of just ringing an alarm, it bypasses the booking system and **automatically initiates a WebRTC emergency teleconsultation** with the nearest available doctor. The doctor instantly receives the live vitals stream and an AI-generated triage brief from our local Ollama model."
+### 🎙️ Act 2 — The Solution (0:30 – 1:15)
 
-**[2:00 - 2:30] The Tech Stack & Closing:** 
-"We built this using FastAPI, Streamlit, local LLMs, and deterministic ML. We didn't just build a doctor booking app; we built an autonomous lifeline that uses teleconsultation to reclaim the golden hour of an emergency. Thank you."
+> "Meet **BioSync Tele-Rescue** — an autonomous edge-AI teleconsultation trigger. Right now, vitals are streaming normally from this $6 ESP32 wearable. The platform shows nearby doctors are available, but idle."
+
+### 🎙️ Act 3 — The "Aha!" Moment (1:15 – 2:00)
+
+> "Watch what happens when I simulate a critical SpO2 drop and a fall. *(trigger anomaly)* Our local Isolation Forest model detects the crash instantly. Instead of just ringing an alarm, it **bypasses the booking system and automatically initiates a WebRTC emergency teleconsultation** with the nearest available doctor. The doctor receives live vitals and an AI-generated triage brief from our local Ollama model."
+
+### 🎙️ Act 4 — Tech Stack & Close (2:00 – 2:30)
+
+> "FastAPI, Streamlit, local LLMs, deterministic ML. We didn't build a doctor booking app — we built an **autonomous lifeline** that uses teleconsultation to reclaim the golden hour. Thank you."
 
 ---
 
-## ⚠️ FALLBACK LADDER (If things break at 2:50 PM)
-1. **Hardware fails:** Switch to `sim_data.py`. Tell judges: "We're simulating the wearable feed to demonstrate the software pipeline."
-2. **LLM is too slow:** Hardcode the triage string. They won't know the difference during a 3-minute pitch.
-3. **Streamlit UI crashes:** Show the FastAPI backend logs detecting the anomaly and triggering the "Call Doctor" function in the terminal. The logic is what matters. 
+## 5 · Fallback Ladder
 
-**STAY CALM. A working prototype with a great story beats broken, complex code. Let's win this.**
+> If things break at 2:50 PM — **don't panic, degrade gracefully:**
+
+| Priority | Failure | Fallback |
+|:---:|---|---|
+| 1 | Hardware fails | Switch to `sim_data.py`. *"We're simulating the wearable feed to demonstrate the software pipeline."* |
+| 2 | LLM too slow | Hardcode the triage string. Judges won't know during a 3-min pitch. |
+| 3 | Streamlit crashes | Show FastAPI backend logs detecting the anomaly + triggering "Call Doctor" in the terminal. **The logic is what matters.** |
+
+---
+
+> **🔥 STAY CALM. A working prototype with a great story beats broken, complex code. Let's win this.**
