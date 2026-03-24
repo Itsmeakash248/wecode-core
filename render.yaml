@@ -29,7 +29,6 @@ services:
         fromService:
           name: biosync-backend
           type: web
-          property: host
           envVarKey: RENDER_EXTERNAL_URL
       - key: PYTHON_VERSION
         value: "3.11"
