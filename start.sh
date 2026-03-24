@@ -7,6 +7,7 @@
 set -e
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 VENV="$REPO_DIR/.venv"
+BACKEND_URL="http://127.0.0.1:8000"
 
 # ── 1. Check / create venv ──────────────────────────────────
 if [ ! -d "$VENV" ]; then
@@ -45,21 +46,30 @@ done
 
 # ── 5. Start FastAPI backend ─────────────────────────────────
 echo ""
-echo "🚀 Starting FastAPI backend on http://localhost:8000 ..."
+echo "🚀 Starting FastAPI backend on $BACKEND_URL ..."
 cd "$REPO_DIR"
 "$VENV/bin/uvicorn" backend.main:app --host 0.0.0.0 --port 8000 --log-level warning &
 BACKEND_PID=$!
 
 # Wait for backend to be ready
 echo -n "   Waiting for backend"
+BACKEND_READY=0
 for i in $(seq 1 20); do
   sleep 0.5
-  if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+  if curl -s "$BACKEND_URL/health" > /dev/null 2>&1; then
+    BACKEND_READY=1
     echo " ✅"
     break
   fi
   echo -n "."
 done
+
+if [ "$BACKEND_READY" -ne 1 ]; then
+  echo ""
+  echo "❌ Backend did not become ready on $BACKEND_URL"
+  [ -n "$BACKEND_PID" ] && kill "$BACKEND_PID" 2>/dev/null
+  exit 1
+fi
 
 # ── 6. Start Streamlit frontend ──────────────────────────────
 echo "🖥️  Starting Streamlit dashboard on http://localhost:8501 ..."
@@ -75,9 +85,9 @@ echo ""
 echo "============================================================"
 echo "  ✅ BioSync Tele-Rescue is running!"
 echo ""
-echo "  📡 Backend API  → http://localhost:8000"
-echo "  📖 API Docs     → http://localhost:8000/docs"
-echo "  🖥️  Dashboard   → http://localhost:8501"
+echo "  📡 Backend API  → $BACKEND_URL"
+echo "  📖 API Docs     → $BACKEND_URL/docs"
+echo "  🖥️  Dashboard   → http://127.0.0.1:8501"
 echo ""
 echo "  [Optional] Run vitals simulator in another terminal:"
 echo "  source .venv/bin/activate && python -m backend.sim_data"

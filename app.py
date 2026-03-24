@@ -38,7 +38,7 @@ st.set_page_config(
 
 def _initialize_session_state() -> None:
     defaults = {
-        "view": HOME_VIEW,
+        "view": AUTH_VIEW,
         "monitoring": False,
         "emergency_feed": False,
         "auth_user": None,
@@ -59,7 +59,7 @@ def _logout() -> None:
     ]
     for key in keys_to_clear:
         del st.session_state[key]
-    st.session_state.view = HOME_VIEW
+    st.session_state.view = AUTH_VIEW
 
 
 def _render_sidebar(auth_user):
@@ -83,21 +83,10 @@ def _render_sidebar(auth_user):
             _logout()
             st.rerun()
     else:
-        requested_role = None
         current_view = st.session_state.view
-        if current_view in VIEW_TO_ROLE:
-            requested_role = VIEW_TO_ROLE[current_view]
-            current_view = AUTH_VIEW
-        elif current_view not in {HOME_VIEW, AUTH_VIEW}:
-            current_view = HOME_VIEW
-
-        view = st.sidebar.selectbox(
-            "Navigation",
-            [HOME_VIEW, AUTH_VIEW],
-            index=[HOME_VIEW, AUTH_VIEW].index(current_view),
-            key="main_navigation",
-        )
-        st.session_state.requested_role = requested_role
+        st.session_state.requested_role = VIEW_TO_ROLE.get(current_view)
+        view = AUTH_VIEW
+        st.sidebar.caption("Sign in or create an account to continue.")
 
     if view != st.session_state.view:
         st.session_state.view = view
@@ -117,6 +106,12 @@ def main() -> None:
 
     current_view = st.session_state.view
     preferred_role = st.session_state.get("requested_role")
+
+    if not auth_user and current_view != AUTH_VIEW:
+        if current_view in VIEW_TO_ROLE:
+            st.session_state.requested_role = VIEW_TO_ROLE[current_view]
+        st.session_state.view = AUTH_VIEW
+        st.rerun()
 
     if current_view == HOME_VIEW:
         LandingPage.render()

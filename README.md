@@ -65,19 +65,21 @@ pip install -r requirements.txt
 Use any one of the following:
 
 ```bash
+# Linux / macOS
+bash start.sh
+
 # Windows
 run_dashboard.bat
 
 # Cross-platform Python launcher
 python run_dashboard.py
-
-# Direct Streamlit run
-streamlit run app.py
 ```
 
 Default dashboard URL:
 
 - http://localhost:8501
+
+If you run `streamlit run app.py` directly, start the FastAPI backend separately first with `uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000`.
 
 ## Backend API
 

@@ -9,8 +9,9 @@ from typing import Any, Optional
 import httpx
 
 
-API_BASE_URL = os.getenv("BIOSYNC_API_URL", "http://localhost:8000").rstrip("/")
+API_BASE_URL = os.getenv("BIOSYNC_API_URL", "http://127.0.0.1:8000").rstrip("/")
 REQUEST_TIMEOUT = float(os.getenv("BIOSYNC_API_TIMEOUT", "8"))
+EXPECTED_BACKEND_SERVICE = "BioSync Tele-Rescue Backend"
 
 
 class BackendUnavailable(RuntimeError):
@@ -23,6 +24,27 @@ class ApiError(RuntimeError):
     def __init__(self, message: str, status_code: int) -> None:
         super().__init__(message)
         self.status_code = status_code
+
+
+def _is_expected_backend() -> bool:
+    health_url = f"{API_BASE_URL}/health"
+    timeout = min(REQUEST_TIMEOUT, 3.0)
+
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            response = client.get(health_url)
+    except httpx.RequestError:
+        return False
+
+    if response.is_error:
+        return False
+
+    try:
+        payload = response.json()
+    except ValueError:
+        return False
+
+    return payload.get("service") == EXPECTED_BACKEND_SERVICE
 
 
 def _request(
@@ -42,6 +64,18 @@ def _request(
         ) from exc
 
     if response.is_error:
+        if response.status_code == 404 and path.startswith("/auth/"):
+            if not _is_expected_backend():
+                raise BackendUnavailable(
+                    f"Authentication backend not found at {API_BASE_URL}. "
+                    "Start this project with `bash start.sh` or set `BIOSYNC_API_URL` to the BioSync API."
+                )
+            raise ApiError(
+                f"BioSync backend is running at {API_BASE_URL}, but the auth route `{path}` is missing. "
+                "Restart the backend from this repository.",
+                response.status_code,
+            )
+
         message = response.text
         try:
             payload = response.json()

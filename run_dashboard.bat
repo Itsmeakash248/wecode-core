@@ -17,24 +17,13 @@ if errorlevel 1 (
 )
 
 echo.
-echo Installing/updating dependencies...
-pip install -r requirements.txt
+echo Starting backend and dashboard...
+echo.
+python run_dashboard.py
 
 if errorlevel 1 (
-    echo ERROR: Failed to install dependencies
+    echo.
+    echo ERROR: Launcher exited unexpectedly.
     pause
     exit /b 1
 )
-
-echo.
-echo Starting BioSync Tele-Rescue Dashboard...
-echo.
-echo The application will open in your default browser
-echo Press Ctrl+C to stop the server
-echo.
-
-python -m streamlit run app.py --server.headless true --server.port 8501
-
-echo.
-echo Application stopped.
-pause
