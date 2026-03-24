@@ -1,162 +1,159 @@
-# Wecode Core
+<p align="center">
+  <img src="logo.jpeg" alt="BioSync Tele-Rescue Logo" width="220" />
+</p>
 
-## BioSync Tele-Rescue
+<h1 align="center">BioSync Tele-Rescue</h1>
+<p align="center">
+  AI-assisted teleconsultation platform for emergency healthcare monitoring and doctor availability.
+</p>
 
-An autonomous edge-AI teleconsultation platform that revolutionizes emergency healthcare by automatically connecting patients to doctors during critical moments.
+<p align="center">
+  <a href="#overview">Overview</a> •
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#backend-api">Backend API</a> •
+  <a href="#project-structure">Project Structure</a>
+</p>
 
-### 🚀 **Latest Improvements**
+## Overview
 
-- **Modular Architecture**: Clean separation of concerns with dedicated components
-- **Enhanced UI/UX**: Modern healthcare-focused design with improved animations
-- **Advanced Features**: Patient search, appointment management, emergency alerts
-- **Live Consultation**: WebRTC-based video/audio consultation with room chat
-- **Patient Feedback System**: End-to-end feedback capture, analytics, and quality monitoring
-- **Better Performance**: Optimized code structure and data management
-- **Professional Dashboard**: Comprehensive telemedicine interface
+BioSync Tele-Rescue is a healthcare platform prototype built for rapid teleconsultation workflows. It combines a Streamlit-based dashboard with a FastAPI backend to support:
 
-### Features
+- Patient vitals intake
+- Anomaly detection and triage brief generation
+- Doctor availability and appointment booking
+- Real-time event broadcasting for monitoring workflows
 
-- **🏠 Landing Page**: Professional introduction to the platform with key features and navigation
-- **👤 Patient Dashboard**: Real-time vitals monitoring with emergency SOS trigger
-- **👨‍⚕️ Doctor Platform**: Modern, clean healthcare telemedicine dashboard with comprehensive analytics
+## Features
 
-### Doctor Dashboard Features
+- Streamlit multi-view application:
+  - Home
+  - Patient Dashboard
+  - Doctor Platform
+- FastAPI backend endpoints for:
+  - Vitals ingestion and anomaly detection
+  - Doctor listing and status updates
+  - Appointment booking and retrieval
+  - Notifications and feedback
+- WebSocket broadcast channel for live updates
+- Simulated vitals stream generator for testing and demos
 
-#### 🎨 Modern UI Design
-- **Minimal & Professional**: Clean white, blue, and soft green color palette
-- **Futuristic Elements**: Soft shadows, rounded cards, smooth animations
-- **Medical Theme**: Healthcare-focused design with appropriate icons and colors
+## Tech Stack
 
-#### 📊 Dashboard Sections
-- **Overview Cards**: Total consultations, active patients, emergency cases, today's appointments
-- **Analytics Charts**: Line chart for consultation trends, pie chart for patient categories
-- **Recent Activity**: List of recent consultations with status badges
-- **Upcoming Appointments**: Doctor schedule with time slots and join call buttons
-- **Emergency Alert Panel**: Highlight urgent cases with red accent and pulse animation
-- **Patient Insights**: Health stats cards with medical icons
+- Frontend/UI: Streamlit, Plotly
+- Backend/API: FastAPI, Uvicorn, Pydantic
+- ML Utilities: scikit-learn (anomaly support)
+- Data and Utilities: pandas, numpy, httpx
 
-#### 🧭 Navigation
-- **Sidebar Navigation**: Dashboard, Appointments, Patients, Reports, Emergency sections
-- **Emergency Section**: Live vitals feed and AI triage briefs for critical cases
+## Quick Start
 
-#### 🆕 **New Features**
-- **Patient Search**: Find patients by name or condition
-- **Appointment Management**: Schedule, reschedule, and cancel appointments
-- **Emergency Response**: Quick action buttons for critical situations
-- **Report Generation**: Export options for various report types
-- **Real-time Updates**: Live data feeds and notifications
-- **Patient Feedback**: Submit ratings/comments and track satisfaction trends
-- **🤖 AI-Powered Detection**: Edge-AI wearables detect critical vitals anomalies
-- **🚨 Auto-Dial Emergency**: Automatically initiates teleconsultation when anomalies are detected
-- **📹 Live Video & Vitals**: Streams live patient vitals and video feed to available doctors
+### 1) Prerequisites
 
-### Installation
+- Python 3.8+
+- pip
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 2) Install dashboard dependencies
 
-### How to Run
+```bash
+pip install -r requirements.txt
+```
 
-#### **Option 1: One-Click Launcher (Recommended)**
+### 3) Run the dashboard
+
+Use any one of the following:
+
 ```bash
 # Windows
 run_dashboard.bat
 
-# Linux/Mac
-./run_dashboard.sh
-
-# Cross-platform
+# Cross-platform Python launcher
 python run_dashboard.py
-```
 
-#### **Option 2: Manual Run**
-```bash
-# Run the application
+# Direct Streamlit run
 streamlit run app.py
 ```
 
-#### **Option 3: Custom Configuration**
+Default dashboard URL:
+
+- http://localhost:8501
+
+## Backend API
+
+### 1) Install backend dependencies
+
 ```bash
-# Run on specific port
-streamlit run app.py --server.port 8502 --server.headless true
+pip install -r backend/requirements.txt
 ```
 
-### Quick Start
+### 2) Run the API server
 
-1. **Download/Clone** the project
-2. **Double-click** `run_dashboard.bat` (Windows) or run `python run_dashboard.py`
-3. **Open** http://localhost:8501 in your browser
-4. **Navigate** through the dashboard sections
-
-### Usage
-
-- **Home**: View the landing page with platform overview
-- **Patient Dashboard**: Monitor vitals and simulate emergency scenarios
-- **Doctor Platform**: Access the comprehensive telemedicine dashboard
-
-### Tech Stack
-
-- **Frontend**: Streamlit with custom CSS and modular components
-- **Data Visualization**: Plotly charts, Streamlit native charts
-- **Architecture**: Modular Python package structure
-- **UI Components**: Reusable component library
-- **State Management**: Streamlit session state
-- **AI/ML**: Edge-AI for anomaly detection (planned)
-- **Communication**: WebRTC consultations via streamlit-webrtc
-- **Backend**: FastAPI (planned)
-
-### Project Structure
-
-```
-biosync-tele-rescue/
-├── app.py                    # Main application entry point
-├── components/               # Modular components package
-│   ├── __init__.py          # Package initialization
-│   ├── data_manager.py      # Data management and mock data
-│   ├── ui_components.py     # Reusable UI components
-│   └── pages.py             # Page components (Landing, Patient, Doctor)
-├── requirements.txt          # Python dependencies
-├── run_dashboard.py         # Python launcher script
-├── run_dashboard.bat        # Windows batch script
-├── run_dashboard.sh         # Cross-platform shell script
-└── README.md                # Project documentation
+```bash
+uvicorn backend.main:app --reload --port 8000
 ```
 
-### Testing
+### 3) Optional: run vitals simulator
 
-Run the test suite to verify all components work correctly:
+```bash
+python -m backend.sim_data
+```
+
+### 4) API documentation
+
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Core Endpoints
+
+- GET /health
+- POST /vitals
+- GET /ws
+- GET /doctors
+- GET /doctors/{doctor_id}
+- PATCH /doctors/{doctor_id}/status
+- POST /appointments
+- GET /appointments/{appt_id}
+- GET /notifications/{uid}
+- PATCH /notifications/{uid}/{notif_id}/read
+- POST /feedback
+- GET /feedback/{doctor_id}
+
+## Project Structure
+
+```text
+wecode-core/
+├── app.py
+├── README.md
+├── requirements.txt
+├── run_dashboard.py
+├── run_dashboard.bat
+├── run_dashboard.sh
+├── backend/
+│   ├── main.py
+│   ├── models.py
+│   ├── llm.py
+│   ├── sim_data.py
+│   ├── requirements.txt
+│   └── ml/
+│       └── anomaly.py
+├── components/
+│   ├── data_manager.py
+│   ├── pages.py
+│   ├── ui_components.py
+│   └── webrtc_consultation.py
+└── test_components.py
+```
+
+## Testing
 
 ```bash
 python test_components.py
 ```
 
-### HackArena 2K26
+## Notes
 
-Developed for HackArena 2K26 Healthcare Track - Doctor Availability & Teleconsultation Platform
+- This repository currently uses in-memory backend stores for appointments, notifications, and feedback.
+- For production deployment, replace in-memory storage with a persistent datastore and tighten CORS, auth, and observability controls.
 
-### Dashboard Screenshots
+## License
 
-The dashboard features a modern, responsive design optimized for both desktop and mobile viewing, with:
-- High-fidelity UI similar to top healthcare applications
-- Clean spacing and professional typography
-- Intuitive icon-based navigation
-- Real-time data visualization
-- Emergency alert system with visual prominence
-
-### 🎯 **Key Achievements**
-
-- **Modular Architecture**: Clean, maintainable code structure
-- **Professional UI/UX**: Modern healthcare dashboard design
-- **Comprehensive Features**: Full telemedicine platform functionality
-- **Real-time Data**: Live vitals monitoring and emergency alerts
-- **Responsive Design**: Works on desktop and mobile devices
-- **Extensible**: Easy to add new features and components
-
-### 📈 **Performance Features**
-
-- Fast loading times with optimized components
-- Real-time data updates without page refreshes
-- Efficient state management
-- Scalable architecture for future enhancements
+No license file is currently included. Add a license before public distribution.
