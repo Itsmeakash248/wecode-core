@@ -1,0 +1,35 @@
+services:
+  # ── FastAPI Backend ───────────────────────────────────────────────────────
+  - type: web
+    name: biosync-backend
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false          # ← paste your key in the Render dashboard
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: PYTHON_VERSION
+        value: "3.11"
+
+  # ── Streamlit Frontend ────────────────────────────────────────────────────
+  - type: web
+    name: biosync-frontend
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: BIOSYNC_API_URL
+        fromService:
+          name: biosync-backend
+          type: web
+          property: host
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: PYTHON_VERSION
+        value: "3.11"
