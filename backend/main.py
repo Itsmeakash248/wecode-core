@@ -364,12 +364,12 @@ app.add_middleware(
 )
 
 
-@app.get("/health", tags=["Meta"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["Meta"])
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "BioSync Tele-Rescue Backend"}
 
 
-@app.get("/", tags=["Meta"])
+@app.api_route("/", methods=["GET", "HEAD"], tags=["Meta"])
 def root() -> dict[str, str]:
     return {
         "service": "BioSync Tele-Rescue Backend",
