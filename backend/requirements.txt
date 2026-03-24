@@ -6,3 +6,5 @@ httpx
 python-dotenv
 python-multipart
 websockets
+streamlit
+requests

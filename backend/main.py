@@ -555,7 +555,6 @@ async def update_appointment(appointment_id: str, request: AppointmentUpdateRequ
     await manager.broadcast({"event": "appointment_updated", "appointment": appointment.model_dump()})
     return appointment
 
-
 @app.get("/notifications/{uid}", response_model=List[Notification], tags=["Notifications"])
 def get_notifications(uid: str, unread_only: bool = False) -> list[Notification]:
     return store.get_notifications(uid, unread_only=unread_only)

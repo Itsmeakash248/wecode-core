@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+*.pyo
 *$py.class
 
 .venv/
@@ -15,6 +16,7 @@ ENV/
 htmlcov/
 
 .env
+*.env
 .env.*
 !.env.example
 .streamlit/secrets.toml
