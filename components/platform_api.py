@@ -84,6 +84,13 @@ def _request(
         ) from exc
 
     if response.is_error:
+        if response.status_code in {502, 503, 504}:
+            raise BackendUnavailable(
+                f"Backend is temporarily unavailable at {API_BASE_URL} "
+                f"(HTTP {response.status_code}). "
+                "The server may be starting up — please wait a moment and try again."
+            )
+
         if response.status_code == 404 and path.startswith("/auth/"):
             if not _supports_auth_backend():
                 raise BackendUnavailable(
