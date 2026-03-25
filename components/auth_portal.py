@@ -114,4 +114,33 @@ def render_auth_portal(preferred_role: Optional[str] = None) -> Optional[dict[st
                 f"**{account['role']}**: `{account['email']}` / `{account['password']}`"
             )
 
+    st.markdown("---")
+    st.markdown("#### 🚀 Quick Access")
+    st.caption("Skip sign-in and explore the platform as a guest. Some features may be limited.")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("👤 Enter as Patient", use_container_width=True, key="guest_patient_btn"):
+            auth_result = {
+                "message": "Entered as Guest Patient.",
+                "user": {
+                    "id": "guest-patient",
+                    "role": "patient",
+                    "full_name": "Guest Patient",
+                    "email": "guest.patient@demo.local",
+                    "linked_profile_id": None,
+                },
+            }
+    with col2:
+        if st.button("👨‍⚕️ Enter as Doctor", use_container_width=True, key="guest_doctor_btn"):
+            auth_result = {
+                "message": "Entered as Guest Doctor.",
+                "user": {
+                    "id": "guest-doctor",
+                    "role": "doctor",
+                    "full_name": "Guest Doctor",
+                    "email": "guest.doctor@demo.local",
+                    "linked_profile_id": None,
+                },
+            }
+
     return auth_result
